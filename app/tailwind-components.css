@@ -11,13 +11,15 @@
   }
 
   .heading-2 {
-    @apply font-heading text-3xl font-extrabold;
+    @apply font-heading font-extrabold;
   }
 
   .heading-3 {
-    font-size: 46px;
+    @apply font-heading font-extrabold;
+
+    font-size: 56px;
     margin-bottom: 30px;
-    @apply font-heading text-2xl font-extrabold;
+    max-width: 100% !important;
 
     @media (min-width: 768px) {
       font-size: 76px;
@@ -25,7 +27,7 @@
     }
   }
 
-  .heading-4 {
-    @apply font-heading text-xl;
+  .prose-narrow > p {
+    @apply mx-auto max-w-[700px];
   }
 }

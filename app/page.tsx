@@ -51,20 +51,29 @@ export default function Home() {
         <p>and we&apos;d love you to be there</p>
       </div>
 
-      <div className="bg-yellow relative mx-auto mb-9 max-w-150 px-2 pt-9 pb-6 text-center md:px-6 md:pb-6">
-        <p className="mx-auto max-w-[700px]">
+      <div className="prose-narrow bg-yellow relative mx-auto mb-9 max-w-150 px-2 pt-9 pb-6 text-center md:px-6 md:pb-6">
+        <p>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi pretium
           magna eget elit tincidunt consectetur.
         </p>
-        <p className="mx-auto max-w-[700px]">
+        <p>
           Cras in est sodales, blandit nisl eu, suscipit purus. Nulla sit amet
           semper lectus, vitae auctor enim.
         </p>
         <p className="heading-3">SAT, 21ST NOV 2026</p>
       </div>
 
-      <div className="bg-blue relative mx-auto max-w-150 px-2 pt-9 text-center md:px-6">
-        asdf
+      <div className="prose-narrow bg-blue relative mx-auto max-w-150 px-2 pt-9 pb-6 text-center md:px-6 md:pb-6">
+        <p className="heading-3">IT STARTS AT 12PM UNTIL LATE</p>
+
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi pretium
+          magna eget elit tincidunt consectetur.
+        </p>
+        <p>
+          Cras in est sodales, blandit nisl eu, suscipit purus. Nulla sit amet
+          semper lectus, vitae auctor enim.
+        </p>
       </div>
     </div>
   );
