@@ -1,6 +1,6 @@
 @layer components {
   .heading-1 {
-    @apply text-huge font-heading tracking-tight;
+    @apply text-huge font-heading tracking-tight font-extrabold;
   }
 
   .heading-2 {
