@@ -1,17 +1,24 @@
 @layer components {
   .heading-1 {
-    @apply text-huge font-heading tracking-tight font-extrabold;
+    @apply font-heading font-extrabold;
+    font-size: 60px;
+  }
+
+  @media (min-width: 768px) {
+    .heading-1 {
+      font-size: 120px;
+    }
   }
 
   .heading-2 {
-    @apply text-3xl font-heading tracking-tight;
+    @apply font-heading text-3xl tracking-tight;
   }
 
   .heading-3 {
-    @apply text-2xl font-heading tracking-tight;
+    @apply font-heading text-2xl tracking-tight;
   }
 
   .heading-4 {
-    @apply text-xl font-heading;
+    @apply font-heading text-xl;
   }
 }
