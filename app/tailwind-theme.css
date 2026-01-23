@@ -1,9 +1,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: "tgn-soft-round-con", sans-serif;
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-playfair);
+  --font-heading: "tgn-soft-round-con", sans-serif;
   --spacing: 8px;
   --text-sm: 14px;
   --text-lg: 20px;
