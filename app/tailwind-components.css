@@ -1,0 +1,17 @@
+@layer components {
+  .heading-1 {
+    @apply text-huge font-heading tracking-tight;
+  }
+
+  .heading-2 {
+    @apply text-3xl font-heading tracking-tight;
+  }
+
+  .heading-3 {
+    @apply text-2xl font-heading tracking-tight;
+  }
+
+  .heading-4 {
+    @apply text-xl font-heading;
+  }
+}
