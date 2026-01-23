@@ -11,11 +11,18 @@
   }
 
   .heading-2 {
-    @apply font-heading text-3xl tracking-tight;
+    @apply font-heading text-3xl font-extrabold;
   }
 
   .heading-3 {
-    @apply font-heading text-2xl tracking-tight;
+    font-size: 46px;
+    margin-bottom: 30px;
+    @apply font-heading text-2xl font-extrabold;
+
+    @media (min-width: 768px) {
+      font-size: 76px;
+      margin-bottom: 50px;
+    }
   }
 
   .heading-4 {

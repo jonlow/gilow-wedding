@@ -21,6 +21,9 @@ body {
 }
 
 @layer base {
+  html {
+  }
+
   h1,
   h2,
   h3,
@@ -32,6 +35,13 @@ body {
 
   p {
     font-size: 20px;
+    line-height: 96%;
+
+    margin-bottom: 24px;
+
+    &:last-child {
+      margin-bottom: 0 !important;
+    }
   }
 
   @media (min-width: 768px) {
