@@ -62,6 +62,15 @@ export default function Home() {
           semper lectus, vitae auctor enim.
         </p>
         <p className="heading-3">SAT, 21ST NOV 2026</p>
+
+        <Image
+          src="/APNG/cloud4.png"
+          alt="Cloud"
+          width={100}
+          height={46}
+          priority
+          className="lg:bottom[10%] absolute bottom-[10%] -left-2 h-auto w-[60px] lg:-left-6 lg:w-[100px]"
+        />
       </div>
 
       <div className="prose-narrow bg-blue relative mx-auto max-w-150 px-2 pt-9 pb-6 text-center md:px-6 md:pb-6">
@@ -78,8 +87,15 @@ export default function Home() {
       </div>
 
       {/* RSVP Section */}
-      <div className="prose-narrow relative mx-auto max-w-150 px-2 pt-9 pb-12 text-center text-black md:px-6">
+      <div className="prose-narrow relative mx-auto max-w-150 px-2 pt-9 text-center text-black md:px-6">
         <RsvpForm />
+        <Image
+          src="/APNG/cheers.png"
+          alt="Cheers celebration illustration"
+          width={714}
+          height={316}
+          className="mx-auto mt-3 w-full max-w-[714px] object-contain"
+        />
       </div>
     </div>
   );
