@@ -30,4 +30,18 @@
   .prose-narrow > p {
     @apply mx-auto max-w-[700px];
   }
+
+  /* Custom checkbox styling */
+  .checkbox-custom {
+    @apply relative inline-flex h-8 w-8 items-center justify-center border-4 border-black transition-shadow;
+  }
+
+  .checkbox-custom::after {
+    content: "";
+    @apply absolute h-5 w-5 bg-black opacity-0 transition-opacity;
+  }
+
+  .peer:checked ~ .checkbox-custom::after {
+    @apply opacity-100;
+  }
 }

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { RsvpForm } from "./rsvp-form";
 
 export default function Home() {
   return (
@@ -74,6 +75,11 @@ export default function Home() {
           Cras in est sodales, blandit nisl eu, suscipit purus. Nulla sit amet
           semper lectus, vitae auctor enim.
         </p>
+      </div>
+
+      {/* RSVP Section */}
+      <div className="prose-narrow relative mx-auto max-w-150 px-2 pt-9 pb-12 text-center text-black md:px-6">
+        <RsvpForm />
       </div>
     </div>
   );
