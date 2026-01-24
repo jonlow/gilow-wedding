@@ -69,7 +69,7 @@ export default function Home() {
           width={100}
           height={46}
           priority
-          className="lg:bottom[10%] absolute bottom-[10%] -left-2 h-auto w-[60px] lg:-left-6 lg:w-[100px]"
+          className="lg:bottom[10%] absolute bottom-[10%] -left-2 h-auto w-7.5 lg:-left-6 lg:w-[100px]"
         />
       </div>
 
@@ -84,6 +84,15 @@ export default function Home() {
           Cras in est sodales, blandit nisl eu, suscipit purus. Nulla sit amet
           semper lectus, vitae auctor enim.
         </p>
+
+        <Image
+          src="/APNG/cloud3.png"
+          alt="Cloud"
+          width={168}
+          height={88}
+          priority
+          className="absolute -right-6 bottom-[-1%] h-auto w-[120px] lg:-right-10 lg:bottom-[-5%] lg:w-[168px]"
+        />
       </div>
 
       {/* RSVP Section */}
