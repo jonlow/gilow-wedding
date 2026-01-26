@@ -59,7 +59,7 @@ export function Dashboard({ user }: DashboardProps) {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-1">
                 <p className="text-muted-foreground font-medium">User ID</p>
-                <p className="font-mono">{user.id}</p>
+                <p className="truncate font-mono" title={user.id}>{user.id}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-muted-foreground font-medium">Username</p>

@@ -179,18 +179,18 @@ export const seedDemoUser = internalMutation({
     // Check if demo user already exists
     const existingUser = await ctx.db
       .query("dashUsers")
-      .withIndex("by_username", (q) => q.eq("username", "admin"))
+      .withIndex("by_username", (q) => q.eq("username", "gilow"))
       .unique();
 
     if (!existingUser) {
       await ctx.db.insert("dashUsers", {
-        username: "admin",
-        passwordHash: simpleHash("admin123"),
+        username: "gilow",
+        passwordHash: simpleHash("we_love_murphy"),
         displayName: "Admin User",
         role: "admin",
         createdAt: Date.now(),
       });
-      console.log("Demo user created: admin / admin123");
+      console.log("Demo user created: gilow");
     } else {
       console.log("Demo user already exists");
     }
@@ -209,21 +209,65 @@ export const createDemoUser = mutation({
     // Check if demo user already exists
     const existingUser = await ctx.db
       .query("dashUsers")
-      .withIndex("by_username", (q) => q.eq("username", "admin"))
+      .withIndex("by_username", (q) => q.eq("username", "gilow"))
       .unique();
 
     if (existingUser) {
-      return "Demo user already exists. Username: admin, Password: admin123";
+      return "Demo user already exists.";
     }
 
     await ctx.db.insert("dashUsers", {
-      username: "admin",
-      passwordHash: simpleHash("admin123"),
+      username: "gilow",
+      passwordHash: simpleHash("we_love_murphy"),
       displayName: "Admin User",
       role: "admin",
       createdAt: Date.now(),
     });
 
-    return "Demo user created! Username: admin, Password: admin123";
+    return "Demo user created!";
+  },
+});
+
+/**
+ * Update the admin user credentials (run once to migrate from old credentials)
+ */
+export const updateAdminCredentials = mutation({
+  args: {},
+  returns: v.string(),
+  handler: async (ctx) => {
+    // Delete old admin user if exists
+    const oldUser = await ctx.db
+      .query("dashUsers")
+      .withIndex("by_username", (q) => q.eq("username", "admin"))
+      .unique();
+
+    if (oldUser) {
+      await ctx.db.delete(oldUser._id);
+    }
+
+    // Check if new user already exists
+    const existingUser = await ctx.db
+      .query("dashUsers")
+      .withIndex("by_username", (q) => q.eq("username", "gilow"))
+      .unique();
+
+    if (existingUser) {
+      // Update the password
+      await ctx.db.patch(existingUser._id, {
+        passwordHash: simpleHash("we_love_murphy"),
+      });
+      return "Updated existing gilow user password.";
+    }
+
+    // Create new user
+    await ctx.db.insert("dashUsers", {
+      username: "gilow",
+      passwordHash: simpleHash("we_love_murphy"),
+      displayName: "Admin User",
+      role: "admin",
+      createdAt: Date.now(),
+    });
+
+    return "Created new gilow user and removed old admin user.";
   },
 });
