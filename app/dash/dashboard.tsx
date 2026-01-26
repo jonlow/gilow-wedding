@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,22 +10,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Id } from "@/convex/_generated/dataModel";
-
-interface User {
-  id: Id<"dashUsers">;
-  username: string;
-  displayName: string;
-  role: string;
-  createdAt: number;
-}
+import { logout, type AuthUser } from "./auth-actions";
 
 interface DashboardProps {
-  user: User;
-  onLogout: () => Promise<void>;
+  user: AuthUser;
 }
 
-export function Dashboard({ user, onLogout }: DashboardProps) {
+export function Dashboard({ user }: DashboardProps) {
+  const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
   const formattedDate = new Date(user.createdAt).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -32,13 +28,23 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
     minute: "2-digit",
   });
 
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    await logout();
+    router.refresh();
+  };
+
   return (
     <div className="bg-background min-h-screen p-8">
       <div className="mx-auto max-w-4xl space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Dashboard</h1>
-          <Button variant="outline" onClick={onLogout}>
-            Sign Out
+          <Button
+            variant="outline"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+          >
+            {isLoggingOut ? "Signing out..." : "Sign Out"}
           </Button>
         </div>
 
@@ -52,31 +58,25 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-1">
-                <p className="text-muted-foreground text-sm font-medium">
-                  User ID
-                </p>
-                <p className="font-mono text-sm">{user.id}</p>
+                <p className="text-muted-foreground font-medium">User ID</p>
+                <p className="font-mono">{user.id}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-muted-foreground text-sm font-medium">
-                  Username
-                </p>
+                <p className="text-muted-foreground font-medium">Username</p>
                 <p>{user.username}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-muted-foreground text-sm font-medium">
+                <p className="text-muted-foreground font-medium">
                   Display Name
                 </p>
                 <p>{user.displayName}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-muted-foreground text-sm font-medium">
-                  Role
-                </p>
+                <p className="text-muted-foreground font-medium">Role</p>
                 <p className="capitalize">{user.role}</p>
               </div>
               <div className="space-y-1 md:col-span-2">
-                <p className="text-muted-foreground text-sm font-medium">
+                <p className="text-muted-foreground font-medium">
                   Account Created
                 </p>
                 <p>{formattedDate}</p>

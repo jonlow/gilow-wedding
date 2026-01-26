@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,15 +12,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { login } from "./auth-actions";
 
-interface LoginFormProps {
-  onLogin: (
-    username: string,
-    password: string,
-  ) => Promise<{ success: true } | { success: false; error: string }>;
-}
-
-export function LoginForm({ onLogin }: LoginFormProps) {
+export function LoginForm() {
+  const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -31,8 +27,11 @@ export function LoginForm({ onLogin }: LoginFormProps) {
     setIsLoading(true);
 
     try {
-      const result = await onLogin(username, password);
-      if (!result.success) {
+      const result = await login(username, password);
+      if (result.success) {
+        // Refresh the page to trigger server-side re-render with new auth state
+        router.refresh();
+      } else {
         setError(result.error);
       }
     } catch {
@@ -77,7 +76,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
                 disabled={isLoading}
               />
             </div>
-            {error && <div className="text-destructive text-sm">{error}</div>}
+            {error && <div className="text-destructive">{error}</div>}
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
