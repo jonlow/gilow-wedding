@@ -3,20 +3,20 @@ import { RsvpForm } from "./rsvp-form";
 
 export default function Home() {
   return (
-    <div className="min-h-screen overflow-x-hidden bg-white">
+    <div className="wedding-content min-h-screen overflow-x-hidden bg-white">
       {/* Hero section with red background column */}
       <div className="relative">
         {/* Red column background - centered, max 1200px, extends down behind the image overlap */}
         <div className="pointer-events-none absolute inset-x-0 top-0 bottom-0 flex justify-center">
-          <div className="bg-red w-full max-w-150" />
+          <div className="bg-red w-full max-w-300" />
         </div>
 
         {/* Content container */}
         <div className="relative">
           {/* Text content - constrained to red column */}
-          <div className="relative mx-auto max-w-150 px-2 pt-9 text-center md:px-6">
+          <div className="relative mx-auto max-w-300 px-4 pt-18 text-center md:px-12">
             <p className="font-bold text-black">Hi Name</p>
-            <h1 className="heading-1 mt-5 text-black uppercase">
+            <h1 className="heading-1 mt-10 text-black uppercase">
               Bel &amp; Jon
               <br />
               are getting
@@ -29,7 +29,7 @@ export default function Home() {
               width={147}
               height={103}
               priority
-              className="absolute -right-6 bottom-[-5%] h-auto w-[99px] lg:-right-10 lg:bottom-[10%] lg:w-[147px]"
+              className="absolute -right-12 bottom-[-5%] h-auto w-[99px] lg:-right-20 lg:bottom-[10%] lg:w-[147px]"
             />
           </div>
 
@@ -48,11 +48,11 @@ export default function Home() {
       </div>
 
       {/* Content below the hero */}
-      <div className="mx-auto max-w-150 px-4 py-5 text-center">
+      <div className="mx-auto max-w-300 px-8 py-10 text-center">
         <p>and we&apos;d love you to be there</p>
       </div>
 
-      <div className="prose-narrow bg-yellow relative mx-auto mb-9 max-w-150 px-2 pt-9 pb-6 text-center md:px-6 md:pb-6">
+      <div className="prose-narrow bg-yellow relative mx-auto mb-18 max-w-300 px-4 pt-18 pb-12 text-center md:px-12 md:pb-12">
         <p>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi pretium
           magna eget elit tincidunt consectetur.
@@ -69,11 +69,11 @@ export default function Home() {
           width={100}
           height={46}
           priority
-          className="lg:bottom[10%] absolute bottom-[10%] -left-2 h-auto w-7.5 lg:-left-6 lg:w-[100px]"
+          className="lg:bottom[10%] absolute bottom-[10%] -left-4 h-auto w-15 lg:-left-12 lg:w-[100px]"
         />
       </div>
 
-      <div className="prose-narrow bg-blue relative mx-auto max-w-150 px-2 pt-9 pb-6 text-center md:px-6 md:pb-6">
+      <div className="prose-narrow bg-blue relative mx-auto max-w-300 px-4 pt-18 pb-12 text-center md:px-12 md:pb-12">
         <p className="heading-3">IT STARTS AT 12PM UNTIL LATE</p>
 
         <p>
@@ -91,19 +91,19 @@ export default function Home() {
           width={168}
           height={88}
           priority
-          className="absolute -right-6 bottom-[-1%] h-auto w-[120px] lg:-right-10 lg:bottom-[-5%] lg:w-[168px]"
+          className="absolute -right-12 bottom-[-1%] h-auto w-[120px] lg:-right-20 lg:bottom-[-5%] lg:w-[168px]"
         />
       </div>
 
       {/* RSVP Section */}
-      <div className="prose-narrow relative mx-auto max-w-150 px-2 pt-9 text-center text-black md:px-6">
+      <div className="prose-narrow relative mx-auto max-w-300 px-4 pt-18 text-center text-black md:px-12">
         <RsvpForm />
         <Image
           src="/APNG/cheers.png"
           alt="Cheers celebration illustration"
           width={714}
           height={316}
-          className="mx-auto mt-3 w-full max-w-[714px] object-contain"
+          className="mx-auto mt-6 w-full max-w-[714px] object-contain"
         />
       </div>
     </div>

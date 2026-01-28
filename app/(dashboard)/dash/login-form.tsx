@@ -42,17 +42,17 @@ export function LoginForm() {
   };
 
   return (
-    <div className="bg-background flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Dashboard Login</CardTitle>
+    <div className="flex min-h-screen items-center justify-center p-4">
+      <Card className="w-full max-w-sm">
+        <CardHeader>
+          <CardTitle className="text-2xl">Dashboard Login</CardTitle>
           <CardDescription>
             Enter your credentials to access the dashboard
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            <div className="grid gap-2">
               <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
@@ -64,7 +64,7 @@ export function LoginForm() {
                 disabled={isLoading}
               />
             </div>
-            <div className="space-y-2">
+            <div className="grid gap-2">
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
@@ -76,8 +76,8 @@ export function LoginForm() {
                 disabled={isLoading}
               />
             </div>
-            {error && <div className="text-destructive">{error}</div>}
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            {error && <p className="text-destructive text-sm">{error}</p>}
+            <Button type="submit" disabled={isLoading}>
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>

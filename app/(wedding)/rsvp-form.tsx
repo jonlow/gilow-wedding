@@ -10,7 +10,7 @@ export function RsvpForm() {
 
   if (isSubmitted) {
     return (
-      <div className="pb-8 text-center">
+      <div className="pb-16 text-center">
         <p className="heading-3">Thank you!</p>
         <p>Your RSVP has been submitted.</p>
       </div>
@@ -28,12 +28,12 @@ export function RsvpForm() {
 
   return (
     <form ref={formRef} onSubmit={handleSubmit}>
-      <p className="mb-8">
+      <p className="mb-16">
         RSVP here by checking a box then pressing &quot;SUBMIT&quot;
       </p>
 
-      <div className="mb-8 flex items-center justify-center gap-8 md:gap-12">
-        <label className="group flex cursor-pointer items-center gap-3">
+      <div className="mb-16 flex items-center justify-center gap-16 md:gap-24">
+        <label className="group flex cursor-pointer items-center gap-6">
           <span className="relative">
             <input
               type="radio"
@@ -50,7 +50,7 @@ export function RsvpForm() {
           </span>
         </label>
 
-        <label className="group flex cursor-pointer items-center gap-3">
+        <label className="group flex cursor-pointer items-center gap-6">
           <span className="relative">
             <input
               type="radio"
@@ -70,12 +70,12 @@ export function RsvpForm() {
       <button
         type="submit"
         disabled={isPending}
-        className="bg-black px-10 py-3 text-lg font-bold tracking-wider text-white uppercase transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-50 md:text-2xl"
+        className="bg-black px-20 py-6 text-lg font-bold tracking-wider text-white uppercase transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-50 md:text-2xl"
       >
         SUBMIT
       </button>
 
-      <p className="mt-10">
+      <p className="mt-20">
         Questions? Send them to{" "}
         <a href="mailto:questions@bel&jon.com" className="font-bold">
           questions@bel&amp;jon.com
