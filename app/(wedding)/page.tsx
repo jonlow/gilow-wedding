@@ -52,7 +52,7 @@ export default function Home() {
         <p>and we&apos;d love you to be there</p>
       </div>
 
-      <div className="prose-narrow bg-yellow relative mx-auto mb-18 max-w-300 px-4 pt-18 pb-12 text-center md:px-12 md:pb-12">
+      <div className="prose-narrow bg-yellow relative mx-auto max-w-300 px-4 pt-18 pb-12 text-center md:px-12 md:pb-12">
         <p>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi pretium
           magna eget elit tincidunt consectetur.
@@ -73,6 +73,10 @@ export default function Home() {
         />
       </div>
 
+      <div className="mx-auto max-w-300 px-8 py-10 text-center">
+        <p>and something else here...</p>
+      </div>
+
       <div className="prose-narrow bg-blue relative mx-auto max-w-300 px-4 pt-18 pb-12 text-center md:px-12 md:pb-12">
         <p className="heading-3">IT STARTS AT 12PM UNTIL LATE</p>
 
@@ -91,7 +95,7 @@ export default function Home() {
           width={168}
           height={88}
           priority
-          className="absolute -right-12 bottom-[-1%] h-auto w-[120px] lg:-right-20 lg:bottom-[-5%] lg:w-[168px]"
+          className="absolute -right-12 bottom-[10%] h-auto w-[120px] lg:-right-20 lg:bottom-[15%] lg:w-[168px]"
         />
       </div>
 
