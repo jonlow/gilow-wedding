@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { Noto_Sans_Telugu } from "next/font/google";
 
 export default defineSchema({
   // Other tables here...
@@ -8,6 +9,7 @@ export default defineSchema({
     attending: v.boolean(),
     email: v.string(),
     name: v.string(),
+    slug: v.string(),
     plusOne: v.string(),
     messages: v.optional(v.array(v.string())),
   }),
