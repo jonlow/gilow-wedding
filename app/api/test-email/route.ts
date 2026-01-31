@@ -14,7 +14,7 @@ export async function GET() {
     const data = await sendEmail({
       from: "howdy@belandjon.com",
       to: "jon@avenue.studio",
-      subject: "Wedding HTML render test",
+      subject: "💛 We're so excited to invite you to our wedding. 💛",
       text: previewText,
       html,
     });

@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 import nodemailer from "nodemailer";
 
-export type EmailProvider = "resend" | "mailhog";
+export type EmailProvider = "resend" | "mailpit";
 
 export type SendEmailArgs = {
   from: string;
@@ -13,27 +13,35 @@ export type SendEmailArgs = {
 
 function getEmailProvider(): EmailProvider {
   const configured = process.env.EMAIL_PROVIDER;
-  if (configured === "resend" || configured === "mailhog") {
+  if (configured === "resend" || configured === "mailpit") {
     return configured;
   }
 
-  // Safe default: use MailHog in dev, Resend otherwise.
-  return process.env.NODE_ENV === "development" ? "mailhog" : "resend";
+  // Safe default: use Mailpit in dev, Resend otherwise.
+  return process.env.NODE_ENV === "development" ? "mailpit" : "resend";
 }
 
 export async function sendEmail(args: SendEmailArgs) {
   const provider = getEmailProvider();
 
-  if (provider === "mailhog") {
-    const host = process.env.MAILHOG_HOST ?? "localhost";
-    const port = Number(process.env.MAILHOG_PORT ?? "1025");
+  if (provider === "mailpit") {
+    const host = process.env.MAILPIT_HOST ?? "localhost";
+    const port = Number(process.env.MAILPIT_PORT ?? "1025");
+    const user = process.env.MAILPIT_USER ?? "";
+    const pass = process.env.MAILPIT_PASS ?? "";
 
     const transport = nodemailer.createTransport({
       host,
       port,
       secure: false,
-      // MailHog is plain SMTP; avoid TLS negotiation surprises.
-      ignoreTLS: true,
+      ...(user && pass
+        ? {
+            auth: {
+              user,
+              pass,
+            },
+          }
+        : {}),
     });
 
     const info = await transport.sendMail({
