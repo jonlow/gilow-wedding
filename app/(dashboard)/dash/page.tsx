@@ -1,4 +1,5 @@
-import { getGuests, getSession } from "./auth-actions";
+import { getSession } from "./auth-actions";
+import { getSessionToken, preloadGuests } from "./data";
 import { LoginForm } from "./login-form";
 import { Dashboard } from "./dashboard";
 
@@ -9,7 +10,12 @@ export default async function DashPage() {
     return <LoginForm />;
   }
 
-  const guests = await getGuests();
+  const token = await getSessionToken();
+  if (!token) {
+    return <LoginForm />;
+  }
 
-  return <Dashboard user={session.user} guests={guests} />;
+  const preloadedGuests = await preloadGuests(token);
+
+  return <Dashboard user={session.user} preloadedGuests={preloadedGuests} />;
 }

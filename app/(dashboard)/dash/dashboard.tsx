@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { MoreHorizontal, Mail } from "lucide-react";
+import { usePreloadedQuery } from "convex/react";
+import type { Preloaded } from "convex/react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -30,22 +32,15 @@ import {
 } from "@/components/ui/table";
 import { logout, type AuthUser } from "./auth-actions";
 import type { Id } from "@/convex/_generated/dataModel";
-
-type DashboardGuest = {
-  _id: Id<"guests">;
-  name: string;
-  email: string;
-  slug: string;
-  plusOne: string;
-  messages?: Array<string>;
-};
+import { api } from "@/convex/_generated/api";
 
 interface DashboardProps {
   user: AuthUser;
-  guests: Array<DashboardGuest>;
+  preloadedGuests: Preloaded<typeof api.guests.listGuests>;
 }
 
-export function Dashboard({ user, guests }: DashboardProps) {
+export function Dashboard({ user, preloadedGuests }: DashboardProps) {
+  const guests = usePreloadedQuery(preloadedGuests);
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [selectedGuests, setSelectedGuests] = useState<Array<Id<"guests">>>([]);
