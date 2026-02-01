@@ -9,11 +9,11 @@ export const listGuests = query({
     v.object({
       _id: v.id("guests"),
       _creationTime: v.number(),
-      attending: v.boolean(),
+      attending: v.optional(v.boolean()),
       name: v.string(),
       email: v.string(),
       slug: v.string(),
-      plusOne: v.string(),
+      plusOne: v.optional(v.string()),
       messages: v.optional(v.array(v.string())),
     }),
   ),
