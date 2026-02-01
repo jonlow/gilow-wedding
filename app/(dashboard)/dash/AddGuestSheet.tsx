@@ -87,7 +87,7 @@ export default function AddGuestSheet({ token }: AddGuestSheetProps) {
           Add Guest
         </Button>
       </SheetTrigger>
-      <SheetContent>
+      <SheetContent className="flex flex-col">
         <SheetHeader>
           <SheetTitle>Add New Guest</SheetTitle>
           <SheetDescription>
@@ -97,73 +97,82 @@ export default function AddGuestSheet({ token }: AddGuestSheetProps) {
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-6 py-4"
+            className="flex flex-1 flex-col"
           >
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="John Doe" {...field} />
-                  </FormControl>
-                  <FormDescription>The full name of the guest.</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="john@example.com"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>The guest's email address.</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="slug"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Slug</FormLabel>
-                  <FormControl>
-                    <Input placeholder="john-doe" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    A unique identifier for the guest (lowercase, hyphenated).
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="plusOne"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Plus One (Optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Jane Doe" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Name of the guest's plus one, if applicable.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <SheetFooter className="gap-2 sm:gap-0">
+            <div className="flex-1 space-y-4 overflow-y-auto p-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John Doe" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      The full name of the guest.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="john@example.com"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      The guest's email address.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="slug"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Slug</FormLabel>
+                    <FormControl>
+                      <Input placeholder="john-doe" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      A unique identifier for the guest (lowercase, hyphenated).
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="plusOne"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Plus One (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Jane Doe" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Name of the guest's plus one, if applicable.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <SheetFooter className="flex-col gap-3 pt-6 sm:flex-col">
+              <Button type="submit" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? "Creating..." : "Create Guest"}
+              </Button>
               <Button
                 type="button"
                 variant="outline"
@@ -173,9 +182,6 @@ export default function AddGuestSheet({ token }: AddGuestSheetProps) {
                 }}
               >
                 Cancel
-              </Button>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? "Creating..." : "Create Guest"}
               </Button>
             </SheetFooter>
           </form>
