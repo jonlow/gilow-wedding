@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MoreHorizontal, Mail } from "lucide-react";
 import { usePreloadedQuery } from "convex/react";
 import type { Preloaded } from "convex/react";
@@ -46,6 +46,12 @@ export function Dashboard({ user, preloadedGuests, token }: DashboardProps) {
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [selectedGuests, setSelectedGuests] = useState<Array<Id<"guests">>>([]);
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration errors by only rendering Radix UI components after mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const isAllSelected = selectedGuests.length === guests.length;
   const isSomeSelected = selectedGuests.length > 0 && !isAllSelected;
@@ -163,7 +169,7 @@ export function Dashboard({ user, preloadedGuests, token }: DashboardProps) {
                     </Button>
                   </>
                 )}
-                <AddGuestSheet token={token} />
+                {mounted && <AddGuestSheet token={token} />}
               </div>
             </div>
           </CardHeader>
@@ -213,30 +219,40 @@ export function Dashboard({ user, preloadedGuests, token }: DashboardProps) {
                     </TableCell>
                     <TableCell>{guest.messages?.length ?? 0}</TableCell>
                     <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem
-                            onClick={() =>
-                              navigator.clipboard.writeText(guest.email)
-                            }
-                          >
-                            Copy email
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem>View details</DropdownMenuItem>
-                          <DropdownMenuItem>Edit guest</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">
-                            Delete guest
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      {mounted ? (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <span className="sr-only">Open menu</span>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                navigator.clipboard.writeText(guest.email)
+                              }
+                            >
+                              Copy email
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem>View details</DropdownMenuItem>
+                            <DropdownMenuItem>Edit guest</DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive">
+                              Delete guest
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          className="h-8 w-8 p-0"
+                          disabled
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

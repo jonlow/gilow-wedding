@@ -69,7 +69,7 @@ export default function AddGuestSheet({ token }: AddGuestSheetProps) {
         slug: values.slug,
         plusOne: values.plusOne || undefined,
       });
-      
+
       // Reset form and close sheet
       form.reset();
       setOpen(false);
@@ -95,7 +95,10 @@ export default function AddGuestSheet({ token }: AddGuestSheetProps) {
           </SheetDescription>
         </SheetHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-6 py-4"
+          >
             <FormField
               control={form.control}
               name="name"
@@ -105,9 +108,7 @@ export default function AddGuestSheet({ token }: AddGuestSheetProps) {
                   <FormControl>
                     <Input placeholder="John Doe" {...field} />
                   </FormControl>
-                  <FormDescription>
-                    The full name of the guest.
-                  </FormDescription>
+                  <FormDescription>The full name of the guest.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -119,11 +120,13 @@ export default function AddGuestSheet({ token }: AddGuestSheetProps) {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="john@example.com" {...field} />
+                    <Input
+                      type="email"
+                      placeholder="john@example.com"
+                      {...field}
+                    />
                   </FormControl>
-                  <FormDescription>
-                    The guest's email address.
-                  </FormDescription>
+                  <FormDescription>The guest's email address.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
