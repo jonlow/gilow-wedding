@@ -33,13 +33,15 @@ import {
 import { logout, type AuthUser } from "./auth-actions";
 import type { Id } from "@/convex/_generated/dataModel";
 import { api } from "@/convex/_generated/api";
+import AddGuestSheet from "./AddGuestSheet";
 
 interface DashboardProps {
   user: AuthUser;
   preloadedGuests: Preloaded<typeof api.guests.listGuests>;
+  token: string;
 }
 
-export function Dashboard({ user, preloadedGuests }: DashboardProps) {
+export function Dashboard({ user, preloadedGuests, token }: DashboardProps) {
   const guests = usePreloadedQuery(preloadedGuests);
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -149,17 +151,20 @@ export function Dashboard({ user, preloadedGuests }: DashboardProps) {
                   Manage your wedding guests and their RSVPs
                 </CardDescription>
               </div>
-              {selectedGuests.length > 0 && (
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground text-sm">
-                    {selectedGuests.length} selected
-                  </span>
-                  <Button size="sm">
-                    <Mail className="mr-2 h-4 w-4" />
-                    Email Invite
-                  </Button>
-                </div>
-              )}
+              <div className="flex items-center gap-2">
+                {selectedGuests.length > 0 && (
+                  <>
+                    <span className="text-muted-foreground text-sm">
+                      {selectedGuests.length} selected
+                    </span>
+                    <Button size="sm">
+                      <Mail className="mr-2 h-4 w-4" />
+                      Email Invite
+                    </Button>
+                  </>
+                )}
+                <AddGuestSheet token={token} />
+              </div>
             </div>
           </CardHeader>
           <CardContent>

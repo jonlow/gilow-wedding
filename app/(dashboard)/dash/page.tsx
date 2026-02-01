@@ -17,5 +17,5 @@ export default async function DashPage() {
 
   const preloadedGuests = await preloadGuests(token);
 
-  return <Dashboard user={session.user} preloadedGuests={preloadedGuests} />;
+  return <Dashboard user={session.user} preloadedGuests={preloadedGuests} token={token} />;
 }
