@@ -29,16 +29,26 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { logout, type AuthUser } from "./auth-actions";
-import { guests } from "./data/guests";
+import type { Id } from "@/convex/_generated/dataModel";
+
+type DashboardGuest = {
+  _id: Id<"guests">;
+  name: string;
+  email: string;
+  slug: string;
+  plusOne: string;
+  messages?: Array<string>;
+};
 
 interface DashboardProps {
   user: AuthUser;
+  guests: Array<DashboardGuest>;
 }
 
-export function Dashboard({ user }: DashboardProps) {
+export function Dashboard({ user, guests }: DashboardProps) {
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [selectedGuests, setSelectedGuests] = useState<string[]>([]);
+  const [selectedGuests, setSelectedGuests] = useState<Array<Id<"guests">>>([]);
 
   const isAllSelected = selectedGuests.length === guests.length;
   const isSomeSelected = selectedGuests.length > 0 && !isAllSelected;
@@ -47,11 +57,11 @@ export function Dashboard({ user }: DashboardProps) {
     if (isAllSelected) {
       setSelectedGuests([]);
     } else {
-      setSelectedGuests(guests.map((g) => g.id));
+      setSelectedGuests(guests.map((g) => g._id));
     }
   };
 
-  const toggleGuest = (id: string) => {
+  const toggleGuest = (id: Id<"guests">) => {
     setSelectedGuests((prev) =>
       prev.includes(id) ? prev.filter((gid) => gid !== id) : [...prev, id],
     );
@@ -161,7 +171,7 @@ export function Dashboard({ user }: DashboardProps) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[50px]">
+                  <TableHead className="w-12.5">
                     <Checkbox
                       checked={
                         isAllSelected || (isSomeSelected && "indeterminate")
@@ -172,42 +182,36 @@ export function Dashboard({ user }: DashboardProps) {
                   </TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Attending</TableHead>
-                  <TableHead>Dietary Requirements</TableHead>
                   <TableHead>Plus One</TableHead>
-                  <TableHead className="w-[50px]"></TableHead>
+                  <TableHead>Slug</TableHead>
+                  <TableHead>Messages</TableHead>
+                  <TableHead className="w-12.5"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {guests.map((guest) => (
                   <TableRow
-                    key={guest.id}
+                    key={guest._id}
                     data-state={
-                      selectedGuests.includes(guest.id) ? "selected" : undefined
+                      selectedGuests.includes(guest._id)
+                        ? "selected"
+                        : undefined
                     }
                   >
                     <TableCell>
                       <Checkbox
-                        checked={selectedGuests.includes(guest.id)}
-                        onCheckedChange={() => toggleGuest(guest.id)}
+                        checked={selectedGuests.includes(guest._id)}
+                        onCheckedChange={() => toggleGuest(guest._id)}
                         aria-label={`Select ${guest.name}`}
                       />
                     </TableCell>
                     <TableCell className="font-medium">{guest.name}</TableCell>
                     <TableCell>{guest.email}</TableCell>
-                    <TableCell>
-                      <span
-                        className={
-                          guest.attending
-                            ? "text-green-600"
-                            : "text-muted-foreground"
-                        }
-                      >
-                        {guest.attending ? "Yes" : "No"}
-                      </span>
+                    <TableCell>{guest.plusOne?.trim() || "—"}</TableCell>
+                    <TableCell className="font-mono text-xs">
+                      {guest.slug}
                     </TableCell>
-                    <TableCell>{guest.dietaryRequirements}</TableCell>
-                    <TableCell>{guest.plusOne ? "Yes" : "No"}</TableCell>
+                    <TableCell>{guest.messages?.length ?? 0}</TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

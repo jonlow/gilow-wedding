@@ -6,11 +6,11 @@ export default defineSchema({
   // Other tables here...
 
   guests: defineTable({
-    attending: v.boolean(),
+    attending: v.optional(v.boolean()),
     email: v.string(),
     name: v.string(),
     slug: v.string(),
-    plusOne: v.string(),
+    plusOne: v.optional(v.string()),
     messages: v.optional(v.array(v.string())),
   }),
 

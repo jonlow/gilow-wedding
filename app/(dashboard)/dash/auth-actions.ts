@@ -55,6 +55,26 @@ export async function getSession(): Promise<AuthResult> {
 }
 
 /**
+ * Get the guest list for the dashboard
+ */
+export async function getGuests() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+
+  if (!token) {
+    return [] as const;
+  }
+
+  try {
+    console.log("got here", token);
+    return await fetchQuery(api.guests.listGuests, { token });
+  } catch (error) {
+    console.error("Failed to fetch guests", error);
+    return [] as const;
+  }
+}
+
+/**
  * Login with username and password
  */
 export async function login(

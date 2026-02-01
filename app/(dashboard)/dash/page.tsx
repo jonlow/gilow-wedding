@@ -1,4 +1,4 @@
-import { getSession } from "./auth-actions";
+import { getGuests, getSession } from "./auth-actions";
 import { LoginForm } from "./login-form";
 import { Dashboard } from "./dashboard";
 
@@ -9,5 +9,7 @@ export default async function DashPage() {
     return <LoginForm />;
   }
 
-  return <Dashboard user={session.user} />;
+  const guests = await getGuests();
+
+  return <Dashboard user={session.user} guests={guests} />;
 }
