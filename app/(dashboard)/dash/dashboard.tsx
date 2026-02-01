@@ -3,10 +3,20 @@
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { MoreHorizontal, Mail } from "lucide-react";
-import { usePreloadedQuery } from "convex/react";
+import { usePreloadedQuery, useMutation } from "convex/react";
 import type { Preloaded } from "convex/react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Card,
   CardContent,
@@ -47,11 +57,39 @@ export function Dashboard({ user, preloadedGuests, token }: DashboardProps) {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [selectedGuests, setSelectedGuests] = useState<Array<Id<"guests">>>([]);
   const [mounted, setMounted] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [guestToDelete, setGuestToDelete] = useState<{
+    id: Id<"guests">;
+    name: string;
+  } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const deleteGuest = useMutation(api.guests.deleteGuest);
 
   // Prevent hydration errors by only rendering Radix UI components after mount
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleDeleteClick = (id: Id<"guests">, name: string) => {
+    setGuestToDelete({ id, name });
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!guestToDelete) return;
+    try {
+      setIsDeleting(true);
+      await deleteGuest({ token, guestId: guestToDelete.id });
+      // Remove from selection if selected
+      setSelectedGuests((prev) => prev.filter((id) => id !== guestToDelete.id));
+      setDeleteDialogOpen(false);
+      setGuestToDelete(null);
+    } catch (error) {
+      console.error("Failed to delete guest:", error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const isAllSelected = selectedGuests.length === guests.length;
   const isSomeSelected = selectedGuests.length > 0 && !isAllSelected;
@@ -239,7 +277,12 @@ export function Dashboard({ user, preloadedGuests, token }: DashboardProps) {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem>View details</DropdownMenuItem>
                             <DropdownMenuItem>Edit guest</DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={() =>
+                                handleDeleteClick(guest._id, guest.name)
+                              }
+                            >
                               Delete guest
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -261,6 +304,33 @@ export function Dashboard({ user, preloadedGuests, token }: DashboardProps) {
           </CardContent>
         </Card>
       </div>
+
+      {mounted && (
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete guest</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete{" "}
+                <strong className="font-semibold">{guestToDelete?.name}</strong>
+                ? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setDeleteDialogOpen(false)}>
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   );
 }

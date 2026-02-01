@@ -113,3 +113,31 @@ export const addGuest = mutation({
     };
   },
 });
+
+export const deleteGuest = mutation({
+  args: {
+    token: v.string(),
+    guestId: v.id("guests"),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    // Verify authentication
+    const session = await ctx.db
+      .query("dashSessions")
+      .withIndex("by_token", (q) => q.eq("token", args.token))
+      .unique();
+
+    if (!session || session.expiresAt < Date.now()) {
+      throw new Error("Unauthorized");
+    }
+
+    const user = await ctx.db.get(session.userId);
+    if (!user) {
+      throw new Error("Unauthorized");
+    }
+
+    // Delete the guest
+    await ctx.db.delete(args.guestId);
+    return null;
+  },
+});
