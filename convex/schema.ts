@@ -12,7 +12,9 @@ export default defineSchema({
     slug: v.string(),
     plusOne: v.optional(v.string()),
     messages: v.optional(v.array(v.string())),
-  }),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_email", ["email"]),
 
   // Dashboard users for authentication
   dashUsers: defineTable({

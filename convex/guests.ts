@@ -43,7 +43,18 @@ export const addGuest = mutation({
     email: v.string(),
     slug: v.string(),
     plusOne: v.optional(v.string()),
+    force: v.optional(v.boolean()),
   },
+  returns: v.object({
+    status: v.union(v.literal("created"), v.literal("duplicate")),
+    guestId: v.optional(v.id("guests")),
+    duplicates: v.optional(
+      v.object({
+        slug: v.optional(v.boolean()),
+        email: v.optional(v.boolean()),
+      }),
+    ),
+  }),
   handler: async (ctx, args) => {
     // Verify authentication
     const session = await ctx.db
@@ -60,6 +71,33 @@ export const addGuest = mutation({
       throw new Error("Unauthorized");
     }
 
+    // Uniqueness checks using schema indexes
+    const [existingSlug, existingEmail] = await Promise.all([
+      ctx.db
+        .query("guests")
+        .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+        .unique(),
+      ctx.db
+        .query("guests")
+        .withIndex("by_email", (q) => q.eq("email", args.email))
+        .unique(),
+    ]);
+
+    const duplicates = {
+      slug: existingSlug ? true : undefined,
+      email: existingEmail ? true : undefined,
+    } as const;
+
+    const hasDuplicate = Boolean(duplicates.slug || duplicates.email);
+
+    if (hasDuplicate && !args.force) {
+      return {
+        status: "duplicate" as const,
+        guestId: undefined,
+        duplicates,
+      };
+    }
+
     // Create the guest
     const guestId = await ctx.db.insert("guests", {
       name: args.name,
@@ -68,6 +106,10 @@ export const addGuest = mutation({
       plusOne: args.plusOne,
     });
 
-    return guestId;
+    return {
+      status: "created" as const,
+      guestId,
+      duplicates: hasDuplicate ? duplicates : undefined,
+    };
   },
 });

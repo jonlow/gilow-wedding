@@ -8,6 +8,16 @@ import * as z from "zod";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -48,6 +58,15 @@ interface AddGuestSheetProps {
 
 export default function AddGuestSheet({ token }: AddGuestSheetProps) {
   const [open, setOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingValues, setPendingValues] = useState<z.infer<
+    typeof formSchema
+  > | null>(null);
+  const [duplicates, setDuplicates] = useState<{
+    slug?: boolean;
+    email?: boolean;
+  } | null>(null);
+  const [isForceSubmitting, setIsForceSubmitting] = useState(false);
   const addGuest = useMutation(api.guests.addGuest);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -62,22 +81,67 @@ export default function AddGuestSheet({ token }: AddGuestSheetProps) {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      await addGuest({
+      const result = await addGuest({
         token,
         name: values.name,
         email: values.email,
         slug: values.slug,
         plusOne: values.plusOne || undefined,
+        force: false,
       });
+
+      if (result.status === "duplicate") {
+        setPendingValues(values);
+        setDuplicates(result.duplicates ?? null);
+        setConfirmOpen(true);
+        return;
+      }
 
       // Reset form and close sheet
       form.reset();
       setOpen(false);
+      setPendingValues(null);
+      setDuplicates(null);
     } catch (error) {
       console.error("Failed to add guest:", error);
       // You could add error handling UI here
     }
   }
+
+  const confirmCreate = async () => {
+    if (!pendingValues) return;
+    try {
+      setIsForceSubmitting(true);
+      const result = await addGuest({
+        token,
+        name: pendingValues.name,
+        email: pendingValues.email,
+        slug: pendingValues.slug,
+        plusOne: pendingValues.plusOne || undefined,
+        force: true,
+      });
+
+      if (result.status === "created") {
+        form.reset();
+        setOpen(false);
+        setConfirmOpen(false);
+        setPendingValues(null);
+        setDuplicates(null);
+      }
+    } catch (error) {
+      console.error("Failed to add guest:", error);
+    } finally {
+      setIsForceSubmitting(false);
+    }
+  };
+
+  const duplicateFields = [
+    duplicates?.email ? "email" : undefined,
+    duplicates?.slug ? "slug" : undefined,
+  ].filter(Boolean);
+  const duplicateLabel = duplicateFields.length
+    ? duplicateFields.join(" and ")
+    : "details";
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -187,6 +251,39 @@ export default function AddGuestSheet({ token }: AddGuestSheetProps) {
           </form>
         </Form>
       </SheetContent>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Duplicate detected</AlertDialogTitle>
+            <AlertDialogDescription>
+              A guest already exists with the same{" "}
+              {duplicateFields.map((field, i) => (
+                <span key={field}>
+                  {i > 0 && " and "}
+                  <strong className="font-semibold">{field}</strong>
+                </span>
+              ))}
+              . Do you want to create this guest anyway?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setConfirmOpen(false);
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmCreate}
+              disabled={isForceSubmitting}
+            >
+              {isForceSubmitting ? "Creating..." : "Create anyway"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Sheet>
   );
 }
