@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePreloadedQuery } from "convex/react";
 import type { Preloaded } from "convex/react";
 import { Button } from "@/components/ui/button";
@@ -37,8 +37,16 @@ interface DashboardContentProps {
 }
 
 function DashboardContent({ user, preloadedGuests }: DashboardContentProps) {
+  const guests = usePreloadedQuery(preloadedGuests);
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [cachedGuests, setCachedGuests] = useState(guests);
+
+  useEffect(() => {
+    if (!isLoggingOut) {
+      setCachedGuests(guests);
+    }
+  }, [guests, isLoggingOut]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -62,19 +70,8 @@ function DashboardContent({ user, preloadedGuests }: DashboardContentProps) {
       <div className="grid gap-6">
         <UserInfoCard user={user} />
 
-        {!isLoggingOut ? (
-          <GuestSection preloadedGuests={preloadedGuests} />
-        ) : null}
+        <GuestTable guests={isLoggingOut ? cachedGuests : guests} />
       </div>
     </div>
   );
-}
-
-interface GuestSectionProps {
-  preloadedGuests: Preloaded<typeof api.guests.listGuests>;
-}
-
-function GuestSection({ preloadedGuests }: GuestSectionProps) {
-  const guests = usePreloadedQuery(preloadedGuests);
-  return <GuestTable guests={guests} />;
 }

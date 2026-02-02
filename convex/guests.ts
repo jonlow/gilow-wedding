@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { requireAuth } from "./lib/auth";
+import { optionalAuth, requireAuth } from "./lib/auth";
 
 export const listGuests = query({
   args: {
@@ -19,7 +19,10 @@ export const listGuests = query({
     }),
   ),
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.token);
+    const auth = await optionalAuth(ctx, args.token);
+    if (!auth) {
+      return [];
+    }
     return await ctx.db.query("guests").collect();
   },
 });
