@@ -37,7 +37,6 @@ interface DashboardContentProps {
 }
 
 function DashboardContent({ user, preloadedGuests }: DashboardContentProps) {
-  const guests = usePreloadedQuery(preloadedGuests);
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -63,8 +62,19 @@ function DashboardContent({ user, preloadedGuests }: DashboardContentProps) {
       <div className="grid gap-6">
         <UserInfoCard user={user} />
 
-        <GuestTable guests={guests} />
+        {!isLoggingOut ? (
+          <GuestSection preloadedGuests={preloadedGuests} />
+        ) : null}
       </div>
     </div>
   );
+}
+
+interface GuestSectionProps {
+  preloadedGuests: Preloaded<typeof api.guests.listGuests>;
+}
+
+function GuestSection({ preloadedGuests }: GuestSectionProps) {
+  const guests = usePreloadedQuery(preloadedGuests);
+  return <GuestTable guests={guests} />;
 }
