@@ -6,11 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetTrigger } from "@/components/ui/sheet";
 import { AddGuestSheetContent } from "./AddGuestSheetContent";
 
-interface AddGuestSheetProps {
-  token: string;
-}
-
-export default function AddGuestSheet({ token }: AddGuestSheetProps) {
+export default function AddGuestSheet() {
   const [open, setOpen] = useState(false);
 
   return (
@@ -21,7 +17,7 @@ export default function AddGuestSheet({ token }: AddGuestSheetProps) {
           Add Guest
         </Button>
       </SheetTrigger>
-      <AddGuestSheetContent token={token} onClose={() => setOpen(false)} />
+      <AddGuestSheetContent onClose={() => setOpen(false)} />
     </Sheet>
   );
 }

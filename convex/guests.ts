@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAuth } from "./lib/auth";
 
 export const listGuests = query({
   args: {
@@ -18,20 +19,7 @@ export const listGuests = query({
     }),
   ),
   handler: async (ctx, args) => {
-    const session = await ctx.db
-      .query("dashSessions")
-      .withIndex("by_token", (q) => q.eq("token", args.token))
-      .unique();
-
-    if (!session || session.expiresAt < Date.now()) {
-      throw new Error("Unauthorized");
-    }
-
-    const user = await ctx.db.get(session.userId);
-    if (!user) {
-      throw new Error("Unauthorized");
-    }
-
+    await requireAuth(ctx, args.token);
     return await ctx.db.query("guests").collect();
   },
 });
@@ -56,20 +44,7 @@ export const addGuest = mutation({
     ),
   }),
   handler: async (ctx, args) => {
-    // Verify authentication
-    const session = await ctx.db
-      .query("dashSessions")
-      .withIndex("by_token", (q) => q.eq("token", args.token))
-      .unique();
-
-    if (!session || session.expiresAt < Date.now()) {
-      throw new Error("Unauthorized");
-    }
-
-    const user = await ctx.db.get(session.userId);
-    if (!user) {
-      throw new Error("Unauthorized");
-    }
+    await requireAuth(ctx, args.token);
 
     // Uniqueness checks using schema indexes
     const [existingSlug, existingEmail] = await Promise.all([
@@ -121,22 +96,7 @@ export const deleteGuest = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    // Verify authentication
-    const session = await ctx.db
-      .query("dashSessions")
-      .withIndex("by_token", (q) => q.eq("token", args.token))
-      .unique();
-
-    if (!session || session.expiresAt < Date.now()) {
-      throw new Error("Unauthorized");
-    }
-
-    const user = await ctx.db.get(session.userId);
-    if (!user) {
-      throw new Error("Unauthorized");
-    }
-
-    // Delete the guest
+    await requireAuth(ctx, args.token);
     await ctx.db.delete(args.guestId);
     return null;
   },

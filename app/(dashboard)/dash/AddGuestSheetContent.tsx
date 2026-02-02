@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { api } from "@/convex/_generated/api";
+import { useAuthToken } from "./hooks/useAuthToken";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -51,14 +52,11 @@ const formSchema = z.object({
 });
 
 interface AddGuestSheetContentProps {
-  token: string;
   onClose: () => void;
 }
 
-export function AddGuestSheetContent({
-  token,
-  onClose,
-}: AddGuestSheetContentProps) {
+export function AddGuestSheetContent({ onClose }: AddGuestSheetContentProps) {
+  const token = useAuthToken();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<z.infer<
     typeof formSchema
