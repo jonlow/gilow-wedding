@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 // Cookie name must match the one in auth-actions.ts
 const SESSION_COOKIE_NAME = "dash_session";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Only apply to /dash routes
