@@ -32,6 +32,7 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { api } from "@/convex/_generated/api";
 import { useAuthToken } from "../hooks/useAuthToken";
 import AddGuestSheet from "../AddGuestSheet";
+import { EditGuestSheet } from "../EditGuestSheet";
 import { DeleteGuestDialog } from "./DeleteGuestDialog";
 
 type Guest = {
@@ -59,6 +60,8 @@ export function GuestTable({ guests }: GuestTableProps) {
     name: string;
   } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [editSheetOpen, setEditSheetOpen] = useState(false);
+  const [guestToEdit, setGuestToEdit] = useState<Guest | null>(null);
   const deleteGuest = useMutation(api.guests.deleteGuest);
 
   useEffect(() => {
@@ -68,6 +71,11 @@ export function GuestTable({ guests }: GuestTableProps) {
   const handleDeleteClick = (id: Id<"guests">, name: string) => {
     setGuestToDelete({ id, name });
     setDeleteDialogOpen(true);
+  };
+
+  const handleEditClick = (guest: Guest) => {
+    setGuestToEdit(guest);
+    setEditSheetOpen(true);
   };
 
   const confirmDelete = async () => {
@@ -85,7 +93,8 @@ export function GuestTable({ guests }: GuestTableProps) {
     }
   };
 
-  const isAllSelected = guests.length > 0 && selectedGuests.length === guests.length;
+  const isAllSelected =
+    guests.length > 0 && selectedGuests.length === guests.length;
   const isSomeSelected = selectedGuests.length > 0 && !isAllSelected;
 
   const toggleAll = () => {
@@ -192,7 +201,11 @@ export function GuestTable({ guests }: GuestTableProps) {
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem>View details</DropdownMenuItem>
-                          <DropdownMenuItem>Edit guest</DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleEditClick(guest)}
+                          >
+                            Edit guest
+                          </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-destructive"
                             onClick={() =>
@@ -222,6 +235,12 @@ export function GuestTable({ guests }: GuestTableProps) {
         guestName={guestToDelete?.name}
         isDeleting={isDeleting}
         onConfirm={confirmDelete}
+      />
+
+      <EditGuestSheet
+        open={editSheetOpen && mounted}
+        onOpenChange={setEditSheetOpen}
+        guest={guestToEdit}
       />
     </>
   );

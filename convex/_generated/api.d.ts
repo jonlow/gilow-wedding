@@ -10,6 +10,7 @@
 
 import type * as auth from "../auth.js";
 import type * as guests from "../guests.js";
+import type * as lib_auth from "../lib/auth.js";
 
 import type {
   ApiFromModules,
@@ -20,6 +21,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   guests: typeof guests;
+  "lib/auth": typeof lib_auth;
 }>;
 
 /**

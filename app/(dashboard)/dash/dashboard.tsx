@@ -63,21 +63,6 @@ function DashboardContent({ user, preloadedGuests }: DashboardContentProps) {
       <div className="grid gap-6">
         <UserInfoCard user={user} />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Stats</CardTitle>
-            <CardDescription>
-              Overview of your wedding dashboard
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground text-sm">
-              This is where you can add more dashboard functionality in the
-              future, such as guest management, RSVP tracking, etc.
-            </p>
-          </CardContent>
-        </Card>
-
         <GuestTable guests={guests} />
       </div>
     </div>

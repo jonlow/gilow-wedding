@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import { useAuthToken } from "./hooks/useAuthToken";
 import {
   AlertDialog,
@@ -15,6 +16,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
+  Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
@@ -22,11 +24,23 @@ import {
 } from "@/components/ui/sheet";
 import { GuestForm, type GuestFormValues } from "./GuestForm";
 
-interface AddGuestSheetContentProps {
-  onClose: () => void;
+interface EditGuestSheetProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  guest: {
+    _id: Id<"guests">;
+    name: string;
+    email: string;
+    slug: string;
+    plusOne?: string;
+  } | null;
 }
 
-export function AddGuestSheetContent({ onClose }: AddGuestSheetContentProps) {
+export function EditGuestSheet({
+  open,
+  onOpenChange,
+  guest,
+}: EditGuestSheetProps) {
   const token = useAuthToken();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<GuestFormValues | null>(
@@ -37,12 +51,15 @@ export function AddGuestSheetContent({ onClose }: AddGuestSheetContentProps) {
     email?: boolean;
   } | null>(null);
   const [isForceSubmitting, setIsForceSubmitting] = useState(false);
-  const addGuest = useMutation(api.guests.addGuest);
+  const updateGuest = useMutation(api.guests.updateGuest);
 
-  async function onSubmit(values: GuestFormValues) {
+  if (!guest) return null;
+
+  const handleSubmit = async (values: GuestFormValues) => {
     try {
-      const result = await addGuest({
+      const result = await updateGuest({
         token,
+        guestId: guest._id,
         name: values.name,
         email: values.email,
         slug: values.slug,
@@ -57,20 +74,21 @@ export function AddGuestSheetContent({ onClose }: AddGuestSheetContentProps) {
         return;
       }
 
-      onClose();
+      onOpenChange(false);
       setPendingValues(null);
       setDuplicates(null);
     } catch (error) {
-      console.error("Failed to add guest:", error);
+      console.error("Failed to update guest:", error);
     }
-  }
+  };
 
-  const confirmCreate = async () => {
+  const confirmUpdate = async () => {
     if (!pendingValues) return;
     try {
       setIsForceSubmitting(true);
-      const result = await addGuest({
+      const result = await updateGuest({
         token,
+        guestId: guest._id,
         name: pendingValues.name,
         email: pendingValues.email,
         slug: pendingValues.slug,
@@ -78,14 +96,14 @@ export function AddGuestSheetContent({ onClose }: AddGuestSheetContentProps) {
         force: true,
       });
 
-      if (result.status === "created") {
-        onClose();
+      if (result.status === "updated") {
+        onOpenChange(false);
         setConfirmOpen(false);
         setPendingValues(null);
         setDuplicates(null);
       }
     } catch (error) {
-      console.error("Failed to add guest:", error);
+      console.error("Failed to update guest:", error);
     } finally {
       setIsForceSubmitting(false);
     }
@@ -98,48 +116,53 @@ export function AddGuestSheetContent({ onClose }: AddGuestSheetContentProps) {
 
   return (
     <>
-      <SheetContent className="flex flex-col">
-        <SheetHeader>
-          <SheetTitle>Add New Guest</SheetTitle>
-          <SheetDescription>
-            Add a new guest to your wedding guest list.
-          </SheetDescription>
-        </SheetHeader>
-        <GuestForm
-          onSubmit={onSubmit}
-          submitLabel="Create Guest"
-          submittingLabel="Creating..."
-        />
-      </SheetContent>
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent className="flex flex-col">
+          <SheetHeader>
+            <SheetTitle>Edit Guest</SheetTitle>
+            <SheetDescription>
+              Update the details for {guest.name}.
+            </SheetDescription>
+          </SheetHeader>
+          <GuestForm
+            key={guest._id}
+            defaultValues={{
+              name: guest.name,
+              email: guest.email,
+              slug: guest.slug,
+              plusOne: guest.plusOne ?? "",
+            }}
+            onSubmit={handleSubmit}
+            submitLabel="Save Changes"
+            submittingLabel="Saving..."
+          />
+        </SheetContent>
+      </Sheet>
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Duplicate detected</AlertDialogTitle>
             <AlertDialogDescription>
-              A guest already exists with the same{" "}
+              Another guest already exists with the same{" "}
               {duplicateFields.map((field, i) => (
                 <span key={field}>
                   {i > 0 && " and "}
                   <strong className="font-semibold">{field}</strong>
                 </span>
               ))}
-              . Do you want to create this guest anyway?
+              . Do you want to save these changes anyway?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel
-              onClick={() => {
-                setConfirmOpen(false);
-              }}
-            >
+            <AlertDialogCancel onClick={() => setConfirmOpen(false)}>
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
-              onClick={confirmCreate}
+              onClick={confirmUpdate}
               disabled={isForceSubmitting}
             >
-              {isForceSubmitting ? "Creating..." : "Create anyway"}
+              {isForceSubmitting ? "Saving..." : "Save anyway"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
