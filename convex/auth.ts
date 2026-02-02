@@ -200,9 +200,9 @@ export const seedDemoUser = internalMutation({
 });
 
 /**
- * Public mutation to create the demo user (call once to set up)
+ * Internal mutation to create the demo user (call once to set up)
  */
-export const createDemoUser = mutation({
+export const createDemoUser = internalMutation({
   args: {},
   returns: v.string(),
   handler: async (ctx) => {
@@ -229,9 +229,10 @@ export const createDemoUser = mutation({
 });
 
 /**
- * Update the admin user credentials (run once to migrate from old credentials)
+ * Internal mutation to update the admin user credentials
+ * (run once to migrate from old credentials)
  */
-export const updateAdminCredentials = mutation({
+export const updateAdminCredentials = internalMutation({
   args: {},
   returns: v.string(),
   handler: async (ctx) => {
