@@ -207,7 +207,7 @@ export function Dashboard({ user, preloadedGuests, token }: DashboardProps) {
                     </Button>
                   </>
                 )}
-                {mounted && <AddGuestSheet token={token} />}
+                <AddGuestSheet token={token} />
               </div>
             </div>
           </CardHeader>
