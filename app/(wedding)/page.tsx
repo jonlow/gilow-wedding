@@ -28,7 +28,7 @@ export default function Home() {
               alt="Cloud"
               width={147}
               height={103}
-              priority
+              preload
               className="absolute -right-12 bottom-[-5%] h-auto w-[99px] lg:-right-20 lg:bottom-[10%] lg:w-[147px]"
             />
           </div>
@@ -41,7 +41,7 @@ export default function Home() {
               width={1920}
               height={448}
               className="w-full min-w-[1286px] object-contain md:min-w-[1920px]"
-              priority
+              preload={true}
             />
           </div>
         </div>
