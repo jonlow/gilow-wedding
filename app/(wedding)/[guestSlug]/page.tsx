@@ -27,6 +27,9 @@ type GuestPageProps = {
 };
 
 export default async function GuestPage({ params }: GuestPageProps) {
+  if (!params.guestSlug) {
+    notFound();
+  }
   const guest = await getGuestBySlug(params.guestSlug);
 
   if (!guest) {
