@@ -21,16 +21,14 @@ const getGuestBySlug = (guestSlug: string) =>
 export const revalidate = 600;
 
 type GuestPageProps = {
-  params: {
+  params: Promise<{
     guestSlug: string;
-  };
+  }>;
 };
 
 export default async function GuestPage({ params }: GuestPageProps) {
-  if (!params.guestSlug) {
-    notFound();
-  }
-  const guest = await getGuestBySlug(params.guestSlug);
+  const { guestSlug } = await params;
+  const guest = await getGuestBySlug(guestSlug);
 
   if (!guest) {
     notFound();

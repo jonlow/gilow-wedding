@@ -29,7 +29,7 @@ export const listGuests = query({
 
 export const getGuestBySlug = query({
   args: {
-    slug: v.optional(v.string()),
+    slug: v.string(),
   },
   returns: v.union(
     v.null(),
@@ -38,9 +38,6 @@ export const getGuestBySlug = query({
     }),
   ),
   handler: async (ctx, args) => {
-    if (!args.slug) {
-      return null;
-    }
     const guest = await ctx.db
       .query("guests")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
