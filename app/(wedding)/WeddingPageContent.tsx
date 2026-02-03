@@ -1,0 +1,119 @@
+import Image from "next/image";
+import { RsvpForm } from "./rsvp-form";
+
+type WeddingPageContentProps = {
+  guestName: string;
+};
+
+export function WeddingPageContent({ guestName }: WeddingPageContentProps) {
+  return (
+    <div className="wedding-content min-h-screen overflow-x-hidden bg-white">
+      {/* Hero section with red background column */}
+      <div className="relative">
+        {/* Red column background - centered, max 1200px, extends down behind the image overlap */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 bottom-0 flex justify-center">
+          <div className="bg-red w-full max-w-300" />
+        </div>
+
+        {/* Content container */}
+        <div className="relative">
+          {/* Text content - constrained to red column */}
+          <div className="relative mx-auto max-w-300 px-4 pt-18 text-center md:px-12">
+            <p className="font-bold text-black">Hi {guestName}</p>
+            <h1 className="heading-1 mt-10 text-black uppercase">
+              Bel &amp; Jon
+              <br />
+              are getting
+              <br />
+              married!
+            </h1>
+            <Image
+              src="/APNG/cloud1.png"
+              alt="Cloud"
+              width={147}
+              height={103}
+              preload
+              className="absolute -right-12 bottom-[-5%] h-auto w-[99px] lg:-right-20 lg:bottom-[10%] lg:w-[147px]"
+            />
+          </div>
+
+          {/* Peopl */}
+          <div className="relative right-1/2 left-1/2 -mx-[50vw] flex w-screen justify-center overflow-hidden">
+            <Image
+              src="/APNG/people.png"
+              alt="Wedding celebration illustration"
+              width={1920}
+              height={448}
+              className="w-full min-w-[1286px] object-contain md:min-w-[1920px]"
+              preload={true}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Content below the hero */}
+      <div className="mx-auto max-w-300 px-8 py-10 text-center">
+        <p>and we&apos;d love you to be there</p>
+      </div>
+
+      <div className="prose-narrow bg-yellow relative mx-auto max-w-300 px-4 pt-18 pb-12 text-center md:px-12 md:pb-12">
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi pretium
+          magna eget elit tincidunt consectetur.
+        </p>
+        <p>
+          Cras in est sodales, blandit nisl eu, suscipit purus. Nulla sit amet
+          semper lectus, vitae auctor enim.
+        </p>
+        <p className="heading-3">SAT, 21ST NOV 2026</p>
+
+        <Image
+          src="/APNG/cloud4.png"
+          alt="Cloud"
+          width={100}
+          height={46}
+          priority
+          className="lg:bottom[10%] absolute bottom-[10%] -left-4 h-auto w-15 lg:-left-12 lg:w-[100px]"
+        />
+      </div>
+
+      <div className="mx-auto max-w-300 px-8 py-10 text-center">
+        <p>and something else here...</p>
+      </div>
+
+      <div className="prose-narrow bg-blue relative mx-auto max-w-300 px-4 pt-18 pb-12 text-center md:px-12 md:pb-12">
+        <p className="heading-3">IT STARTS AT 12PM UNTIL LATE</p>
+
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi pretium
+          magna eget elit tincidunt consectetur.
+        </p>
+        <p>
+          Cras in est sodales, blandit nisl eu, suscipit purus. Nulla sit amet
+          semper lectus, vitae auctor enim.
+        </p>
+
+        <Image
+          src="/APNG/cloud3.png"
+          alt="Cloud"
+          width={168}
+          height={88}
+          priority
+          className="absolute -right-12 bottom-[10%] h-auto w-[120px] lg:-right-20 lg:bottom-[15%] lg:w-[168px]"
+        />
+      </div>
+
+      {/* RSVP Section */}
+      <div className="prose-narrow relative mx-auto max-w-300 px-4 pt-18 text-center text-black md:px-12">
+        <RsvpForm />
+        <Image
+          src="/APNG/cheers.png"
+          alt="Cheers celebration illustration"
+          width={714}
+          height={316}
+          className="mx-auto mt-6 w-full max-w-[714px] object-contain"
+        />
+      </div>
+    </div>
+  );
+}
