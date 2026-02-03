@@ -27,6 +27,25 @@ export const listGuests = query({
   },
 });
 
+export const getGuestBySlug = query({
+  args: {
+    slug: v.string(),
+  },
+  returns: v.union(
+    v.null(),
+    v.object({
+      name: v.string(),
+    }),
+  ),
+  handler: async (ctx, args) => {
+    const guest = await ctx.db
+      .query("guests")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .unique();
+    return guest ? { name: guest.name } : null;
+  },
+});
+
 export const addGuest = mutation({
   args: {
     token: v.string(),
