@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { MoreHorizontal, Mail, Copy, Check } from "lucide-react";
+import { MoreHorizontal, Mail, Copy, Check, Plus } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useMutation } from "convex/react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -31,9 +32,18 @@ import {
 import type { Id } from "@/convex/_generated/dataModel";
 import { api } from "@/convex/_generated/api";
 import { useAuthToken } from "../hooks/useAuthToken";
-import AddGuestSheet from "../AddGuestSheet";
 import { EditGuestSheet } from "../EditGuestSheet";
 import { DeleteGuestDialog } from "./DeleteGuestDialog";
+
+const AddGuestSheet = dynamic(() => import("../AddGuestSheet"), {
+  ssr: false,
+  loading: () => (
+    <Button disabled>
+      <Plus className="mr-2 h-4 w-4" />
+      Add Guest
+    </Button>
+  ),
+});
 
 type Guest = {
   _id: Id<"guests">;

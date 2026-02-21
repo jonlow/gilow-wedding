@@ -62,7 +62,7 @@ export function WeddingPageContent({
         <p>and we&apos;d love you to be there</p>
       </div>
 
-      <div className="prose-narrow bg-yellow relative mx-auto max-w-300 px-4 pt-18 pb-12 text-center md:px-12 md:pb-12">
+      <div className="prose-narrow bg-yellow relative mx-auto mb-12.5 max-w-300 px-4 pt-18 pb-12 text-center md:mb-17.5 md:px-12 md:pb-12">
         <p>
           We’re gathering our favourite people for a relaxed backyard wedding
           filled with family, food, music and celebration.
@@ -70,13 +70,13 @@ export function WeddingPageContent({
         <p className="heading-3">SAT, 21ST NOV 2026</p>
         <p>
           It will begin with a traditional Lao ceremony, followed by an
-          afternoon and evening of eating, drinking and celebrating together
+          afternoon and evening of eating, drinking and celebrating together.
         </p>
         <p>Dress comfortably the celebration will be mostly outdoors. </p>
         <p>
-          As part of the Lao ceremony, guests will be invited to offer a
+          No gifts! As part of the ceremony you will be invited to offer a
           blessing. Some may choose to include a small monetary gift as part of
-          this tradition, though it is entirely optional.{" "}
+          this tradition.
         </p>
 
         <Image
@@ -90,11 +90,7 @@ export function WeddingPageContent({
         />
       </div>
 
-      <div className="mx-auto max-w-300 px-8 py-10 text-center">
-        <p>Where and what time?</p>
-      </div>
-
-      <div className="prose-narrow bg-blue relative mx-auto max-w-300 px-4 pt-18 pb-12 text-center md:px-12 md:pb-12">
+      <div className="prose-narrow bg-blue relative mx-auto mb-12.5 max-w-300 px-4 pt-18 pb-12 text-center md:mb-17.5 md:px-12 md:pb-12">
         <p className="heading-3">IT STARTS AT 12PM UNTIL LATE</p>
 
         <p>4 Archer Place Mill Park 3082 VIC</p>
@@ -114,11 +110,7 @@ export function WeddingPageContent({
         />
       </div>
 
-      <div className="mx-auto max-w-300 px-8 py-10 text-center">
-        <p>We can't wait to celebrate with you </p>
-      </div>
-
-      <div className="prose-narrow bg-green relative mx-auto max-w-300 px-4 pt-18 pb-12 text-center text-black md:px-12 md:pb-12">
+      <div className="prose-narrow bg-green relative mx-auto max-w-300 px-4 pt-18 pb-15 text-center text-black md:px-12 md:pb-17">
         <p>Please let us know you can make it by</p>
         <p className="heading-3">20.05.26</p>
       </div>
