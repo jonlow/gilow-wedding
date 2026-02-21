@@ -114,14 +114,19 @@ export function GuestTable({ guests }: GuestTableProps) {
 
   const confirmDelete = async () => {
     if (!guestToDelete) return;
+    const deletedGuestName = guestToDelete.name;
     try {
       setIsDeleting(true);
       await deleteGuest({ token, guestId: guestToDelete.id });
       setSelectedGuests((prev) => prev.filter((id) => id !== guestToDelete.id));
       setDeleteDialogOpen(false);
       setGuestToDelete(null);
+      toast.success(`${deletedGuestName} was deleted.`);
     } catch (error) {
       console.error("Failed to delete guest:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete guest",
+      );
     } finally {
       setIsDeleting(false);
     }
@@ -190,9 +195,9 @@ export function GuestTable({ guests }: GuestTableProps) {
       });
 
       if (!response.ok) {
-        const payload = (await response.json().catch(() => null)) as
-          | { error?: string }
-          | null;
+        const payload = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
         throw new Error(payload?.error || "Failed to send invite");
       }
 
@@ -312,7 +317,9 @@ export function GuestTable({ guests }: GuestTableProps) {
                         variant="ghost"
                         size="icon"
                         className="h-6 w-6"
-                        onClick={() => handleCopyGuestUrl(guest.slug, guest._id)}
+                        onClick={() =>
+                          handleCopyGuestUrl(guest.slug, guest._id)
+                        }
                         aria-label={
                           copiedGuestId === guest._id
                             ? `Copied link for ${guest.name}`
@@ -350,13 +357,7 @@ export function GuestTable({ guests }: GuestTableProps) {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem
-                            onClick={() =>
-                              navigator.clipboard.writeText(guest.email)
-                            }
-                          >
-                            Copy email
-                          </DropdownMenuItem>
+
                           <DropdownMenuItem
                             onClick={() => handleSendInvite(guest)}
                             disabled={sendingInviteGuestId === guest._id}
@@ -365,13 +366,13 @@ export function GuestTable({ guests }: GuestTableProps) {
                               ? "Sending invite..."
                               : "Send invite"}
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem>View details</DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleEditClick(guest)}
                           >
                             Edit guest
                           </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+
                           <DropdownMenuItem
                             className="text-destructive"
                             onClick={() =>

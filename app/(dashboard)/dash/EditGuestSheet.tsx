@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useMutation } from "convex/react";
+import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useAuthToken } from "./hooks/useAuthToken";
@@ -101,11 +102,17 @@ export function EditGuestSheet({
         return;
       }
 
+      if (result.status === "updated") {
+        toast.success(`${values.name} was updated.`);
+      }
       onOpenChange(false);
       setPendingValues(null);
       setDuplicates(null);
     } catch (error) {
       console.error("Failed to update guest:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update guest",
+      );
     }
   };
 
@@ -128,6 +135,7 @@ export function EditGuestSheet({
       });
 
       if (result.status === "updated") {
+        toast.success(`${pendingValues.name} was updated.`);
         onOpenChange(false);
         setConfirmOpen(false);
         setPendingValues(null);
@@ -135,6 +143,9 @@ export function EditGuestSheet({
       }
     } catch (error) {
       console.error("Failed to update guest:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update guest",
+      );
     } finally {
       setIsForceSubmitting(false);
     }

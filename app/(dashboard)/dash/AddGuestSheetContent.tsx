@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useMutation } from "convex/react";
+import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import { useAuthToken } from "./hooks/useAuthToken";
 import {
@@ -75,11 +76,15 @@ export function AddGuestSheetContent({ onClose }: AddGuestSheetContentProps) {
         return;
       }
 
+      if (result.status === "created") {
+        toast.success(`${values.name} was created.`);
+      }
       onClose();
       setPendingValues(null);
       setDuplicates(null);
     } catch (error) {
       console.error("Failed to add guest:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to add guest");
     }
   }
 
@@ -101,6 +106,7 @@ export function AddGuestSheetContent({ onClose }: AddGuestSheetContentProps) {
       });
 
       if (result.status === "created") {
+        toast.success(`${pendingValues.name} was created.`);
         onClose();
         setConfirmOpen(false);
         setPendingValues(null);
@@ -108,6 +114,7 @@ export function AddGuestSheetContent({ onClose }: AddGuestSheetContentProps) {
       }
     } catch (error) {
       console.error("Failed to add guest:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to add guest");
     } finally {
       setIsForceSubmitting(false);
     }
