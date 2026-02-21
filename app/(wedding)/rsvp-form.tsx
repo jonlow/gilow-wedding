@@ -82,7 +82,7 @@ export function RsvpForm({ guestSlug }: RsvpFormProps) {
       <button
         type="submit"
         disabled={isPending}
-        className="bg-black px-20 py-6 text-2xl font-bold text-white uppercase transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-50 md:text-[34px]"
+        className="bg-black px-20 py-6 pb-[26px] text-2xl font-bold text-white uppercase transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-50 md:text-[34px]"
       >
         SUBMIT
       </button>
