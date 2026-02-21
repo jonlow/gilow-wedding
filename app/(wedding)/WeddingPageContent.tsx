@@ -70,6 +70,15 @@ export function WeddingPageContent({
       </div>
 
       <div className="prose-narrow bg-yellow relative mx-auto mb-12.5 max-w-300 px-4 pt-18 pb-12 text-center md:mb-17.5 md:px-12 md:pb-12">
+        <Image
+          src="/APNG/cloud1.png"
+          alt="Cloud"
+          unoptimized
+          width={147}
+          height={103}
+          preload
+          className="absolute top-[-5%] -right-12 h-auto w-[99px] lg:top-[10%] lg:-right-20 lg:w-[147px]"
+        />
         <p>
           We’re gathering our favourite people for a relaxed backyard wedding
           filled with family, food, music and celebration.
