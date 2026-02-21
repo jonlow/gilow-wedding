@@ -36,6 +36,7 @@ import { useAuthToken } from "../hooks/useAuthToken";
 import { EditGuestSheet } from "../EditGuestSheet";
 import { DeleteGuestDialog } from "./DeleteGuestDialog";
 import { ResendInviteDialog } from "./ResendInviteDialog";
+import { BulkGuestImport } from "./BulkGuestImport";
 
 const AddGuestSheet = dynamic(() => import("../AddGuestSheet"), {
   ssr: false,
@@ -80,6 +81,7 @@ export function GuestTable({ guests }: GuestTableProps) {
   const [guestToResend, setGuestToResend] = useState<Guest | null>(null);
   const [sendingInviteGuestId, setSendingInviteGuestId] =
     useState<Id<"guests"> | null>(null);
+  const [activeTab, setActiveTab] = useState<"guests" | "import">("guests");
   const copiedResetTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const deleteGuest = useMutation(api.guests.deleteGuest);
 
@@ -260,139 +262,162 @@ export function GuestTable({ guests }: GuestTableProps) {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12.5">
-                  <Checkbox
-                    checked={
-                      isAllSelected || (isSomeSelected && "indeterminate")
-                    }
-                    onCheckedChange={toggleAll}
-                    aria-label="Select all"
-                  />
-                </TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>RSVP</TableHead>
-                <TableHead>Invite Sent</TableHead>
-                <TableHead>Plus One</TableHead>
-                <TableHead>Slug</TableHead>
-                <TableHead>Messages</TableHead>
-                <TableHead className="w-12.5"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {guests.map((guest) => (
-                <TableRow
-                  key={guest._id}
-                  data-state={
-                    selectedGuests.includes(guest._id) ? "selected" : undefined
-                  }
-                >
-                  <TableCell>
+        <CardContent className="space-y-4">
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant={activeTab === "guests" ? "default" : "outline"}
+              onClick={() => setActiveTab("guests")}
+            >
+              Guest table
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={activeTab === "import" ? "default" : "outline"}
+              onClick={() => setActiveTab("import")}
+            >
+              Bulk import CSV
+            </Button>
+          </div>
+
+          {activeTab === "guests" ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12.5">
                     <Checkbox
-                      checked={selectedGuests.includes(guest._id)}
-                      onCheckedChange={() => toggleGuest(guest._id)}
-                      aria-label={`Select ${guest.name}`}
+                      checked={
+                        isAllSelected || (isSomeSelected && "indeterminate")
+                      }
+                      onCheckedChange={toggleAll}
+                      aria-label="Select all"
                     />
-                  </TableCell>
-                  <TableCell className="font-medium">{guest.name}</TableCell>
-                  <TableCell>{guest.email}</TableCell>
-                  <TableCell>
-                    {guest.attending === true
-                      ? "Yes"
-                      : guest.attending === false
-                        ? "No"
-                        : "No response"}
-                  </TableCell>
-                  <TableCell>{guest.inviteSent ? "Yes" : "No"}</TableCell>
-                  <TableCell>{guest.plusOne?.trim() || "—"}</TableCell>
-                  <TableCell className="font-mono text-xs">
-                    <div className="flex items-center gap-1">
-                      <span>{guest.slug}</span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6"
-                        onClick={() =>
-                          handleCopyGuestUrl(guest.slug, guest._id)
-                        }
-                        aria-label={
-                          copiedGuestId === guest._id
-                            ? `Copied link for ${guest.name}`
-                            : `Copy guest link for ${guest.name}`
-                        }
-                        title={
-                          copiedGuestId === guest._id
-                            ? "Copied"
-                            : "Copy guest link"
-                        }
-                        disabled={!mounted}
-                      >
-                        {copiedGuestId === guest._id ? (
-                          <Check className="h-3.5 w-3.5" />
-                        ) : (
-                          <Copy className="h-3.5 w-3.5" />
-                        )}
-                        <span className="sr-only">
-                          {copiedGuestId === guest._id
-                            ? "Copied guest link"
-                            : "Copy guest link"}
-                        </span>
-                      </Button>
-                    </div>
-                  </TableCell>
-                  <TableCell>{guest.messages?.length ?? 0}</TableCell>
-                  <TableCell>
-                    {mounted ? (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-
-                          <DropdownMenuItem
-                            onClick={() => handleSendInvite(guest)}
-                            disabled={sendingInviteGuestId === guest._id}
-                          >
-                            {sendingInviteGuestId === guest._id
-                              ? "Sending invite..."
-                              : "Send invite"}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleEditClick(guest)}
-                          >
-                            Edit guest
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-
-                          <DropdownMenuItem
-                            className="text-destructive"
-                            onClick={() =>
-                              handleDeleteClick(guest._id, guest.name)
-                            }
-                          >
-                            Delete guest
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    ) : (
-                      <Button variant="ghost" className="h-8 w-8 p-0" disabled>
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </TableCell>
+                  </TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>RSVP</TableHead>
+                  <TableHead>Invite Sent</TableHead>
+                  <TableHead>Plus One</TableHead>
+                  <TableHead>Slug</TableHead>
+                  <TableHead>Messages</TableHead>
+                  <TableHead className="w-12.5"></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {guests.map((guest) => (
+                  <TableRow
+                    key={guest._id}
+                    data-state={
+                      selectedGuests.includes(guest._id) ? "selected" : undefined
+                    }
+                  >
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedGuests.includes(guest._id)}
+                        onCheckedChange={() => toggleGuest(guest._id)}
+                        aria-label={`Select ${guest.name}`}
+                      />
+                    </TableCell>
+                    <TableCell className="font-medium">{guest.name}</TableCell>
+                    <TableCell>{guest.email}</TableCell>
+                    <TableCell>
+                      {guest.attending === true
+                        ? "Yes"
+                        : guest.attending === false
+                          ? "No"
+                          : "No response"}
+                    </TableCell>
+                    <TableCell>{guest.inviteSent ? "Yes" : "No"}</TableCell>
+                    <TableCell>{guest.plusOne?.trim() || "—"}</TableCell>
+                    <TableCell className="font-mono text-xs">
+                      <div className="flex items-center gap-1">
+                        <span>{guest.slug}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() =>
+                            handleCopyGuestUrl(guest.slug, guest._id)
+                          }
+                          aria-label={
+                            copiedGuestId === guest._id
+                              ? `Copied link for ${guest.name}`
+                              : `Copy guest link for ${guest.name}`
+                          }
+                          title={
+                            copiedGuestId === guest._id
+                              ? "Copied"
+                              : "Copy guest link"
+                          }
+                          disabled={!mounted}
+                        >
+                          {copiedGuestId === guest._id ? (
+                            <Check className="h-3.5 w-3.5" />
+                          ) : (
+                            <Copy className="h-3.5 w-3.5" />
+                          )}
+                          <span className="sr-only">
+                            {copiedGuestId === guest._id
+                              ? "Copied guest link"
+                              : "Copy guest link"}
+                          </span>
+                        </Button>
+                      </div>
+                    </TableCell>
+                    <TableCell>{guest.messages?.length ?? 0}</TableCell>
+                    <TableCell>
+                      {mounted ? (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <span className="sr-only">Open menu</span>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+
+                            <DropdownMenuItem
+                              onClick={() => handleSendInvite(guest)}
+                              disabled={sendingInviteGuestId === guest._id}
+                            >
+                              {sendingInviteGuestId === guest._id
+                                ? "Sending invite..."
+                                : "Send invite"}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleEditClick(guest)}
+                            >
+                              Edit guest
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={() =>
+                                handleDeleteClick(guest._id, guest.name)
+                              }
+                            >
+                              Delete guest
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      ) : (
+                        <Button variant="ghost" className="h-8 w-8 p-0" disabled>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <BulkGuestImport />
+          )}
         </CardContent>
       </Card>
 

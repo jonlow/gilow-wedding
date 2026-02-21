@@ -241,6 +241,94 @@ export const updateGuest = mutation({
   },
 });
 
+
+export const bulkImportGuests = mutation({
+  args: {
+    token: v.string(),
+    guests: v.array(
+      v.object({
+        name: v.string(),
+        slug: v.string(),
+        email: v.string(),
+        plusOne: v.optional(v.string()),
+      }),
+    ),
+  },
+  returns: v.object({
+    importedCount: v.number(),
+    skippedExistingEmailCount: v.number(),
+    skippedDuplicateFileEmailCount: v.number(),
+    skippedDuplicateSlugCount: v.number(),
+    skippedInvalidCount: v.number(),
+  }),
+  handler: async (ctx, args) => {
+    await requireAuth(ctx, args.token);
+
+    let importedCount = 0;
+    let skippedExistingEmailCount = 0;
+    let skippedDuplicateFileEmailCount = 0;
+    let skippedDuplicateSlugCount = 0;
+    let skippedInvalidCount = 0;
+
+    const seenEmails = new Set<string>();
+
+    for (const guest of args.guests) {
+      const name = guest.name.trim();
+      const slug = guest.slug.trim();
+      const email = guest.email.trim().toLowerCase();
+      const plusOne = guest.plusOne?.trim() || undefined;
+
+      if (!name || !slug || !email) {
+        skippedInvalidCount += 1;
+        continue;
+      }
+
+      if (seenEmails.has(email)) {
+        skippedDuplicateFileEmailCount += 1;
+        continue;
+      }
+      seenEmails.add(email);
+
+      const existingByEmail = await ctx.db
+        .query("guests")
+        .withIndex("by_email", (q) => q.eq("email", email))
+        .unique();
+
+      if (existingByEmail) {
+        skippedExistingEmailCount += 1;
+        continue;
+      }
+
+      const existingBySlug = await ctx.db
+        .query("guests")
+        .withIndex("by_slug", (q) => q.eq("slug", slug))
+        .unique();
+
+      if (existingBySlug) {
+        skippedDuplicateSlugCount += 1;
+        continue;
+      }
+
+      await ctx.db.insert("guests", {
+        name,
+        slug,
+        email,
+        plusOne,
+        inviteSent: false,
+      });
+
+      importedCount += 1;
+    }
+
+    return {
+      importedCount,
+      skippedExistingEmailCount,
+      skippedDuplicateFileEmailCount,
+      skippedDuplicateSlugCount,
+      skippedInvalidCount,
+    };
+  },
+});
 export const deleteGuest = mutation({
   args: {
     token: v.string(),
