@@ -46,7 +46,7 @@ export function invitationEmail({ names, buttonLink }: InvitationEmailProps) {
           </tr>
 
           <tr>
-            <td align="center" style="padding:0 32px 48px;">
+            <td align="center" style="padding:0 32px 30px;">
               <!--[if mso]>
                 <v:rect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${buttonLink}" style="height:50px;v-text-anchor:middle;width:170px;" stroke="f" fillcolor="#f8af63">
                   <w:anchorlock/>
@@ -69,6 +69,18 @@ export function invitationEmail({ names, buttonLink }: InvitationEmailProps) {
               <p class="mobile-text" style="margin:0 0 20px;font-size:16px;line-height:1.6;">
                 With love,
               </p>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
+                <tr>
+                  <td align="center">
+                    <img
+                      src="https://www.belandjon.com/bel-jon-sig.png"
+                      alt="Bel and Jon signature"
+                      width="200"
+                      style="display:block;width:200px;max-width:100%;height:auto;border:0;outline:none;text-decoration:none;margin:0 auto;"
+                    />
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
           </table>
