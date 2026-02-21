@@ -159,7 +159,7 @@ export function EditGuestSheet({
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent className="flex flex-col">
+        <SheetContent className="flex h-dvh min-h-0 max-h-dvh flex-col overflow-hidden p-0">
           <SheetHeader>
             <SheetTitle>Edit Guest</SheetTitle>
             <SheetDescription>

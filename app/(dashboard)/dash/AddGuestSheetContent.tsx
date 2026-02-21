@@ -127,7 +127,7 @@ export function AddGuestSheetContent({ onClose }: AddGuestSheetContentProps) {
 
   return (
     <>
-      <SheetContent className="flex flex-col">
+      <SheetContent className="flex h-dvh min-h-0 max-h-dvh flex-col overflow-hidden p-0">
         <SheetHeader>
           <SheetTitle>Add New Guest</SheetTitle>
           <SheetDescription>

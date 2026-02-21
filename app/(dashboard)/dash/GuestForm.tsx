@@ -75,9 +75,9 @@ export function GuestForm({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(handleSubmit)}
-        className="flex flex-1 flex-col"
+        className="flex flex-1 min-h-0 flex-col"
       >
-        <div className="flex-1 space-y-4 overflow-y-auto p-4">
+        <div className="flex-1 min-h-0 space-y-4 overflow-y-auto p-4">
           <FormField
             control={form.control}
             name="name"
@@ -219,7 +219,7 @@ export function GuestForm({
             )}
           />
         </div>
-        <SheetFooter className="flex-col gap-3 pt-6 sm:flex-col">
+        <SheetFooter className="shrink-0 flex-col gap-3 pt-6 sm:flex-col">
           <Button
             type="submit"
             disabled={isSubmitting || form.formState.isSubmitting}
