@@ -4,12 +4,16 @@ import { RsvpForm } from "./rsvp-form";
 type WeddingPageContentProps = {
   guestName: string;
   guestSlug: string;
+  plusOneName?: string;
 };
 
 export function WeddingPageContent({
   guestName,
   guestSlug,
+  plusOneName,
 }: WeddingPageContentProps) {
+  const plusOneDisplayName = plusOneName?.trim();
+
   return (
     <div className="wedding-content min-h-screen overflow-x-hidden bg-white">
       {/* Hero section with red background column */}
@@ -23,7 +27,10 @@ export function WeddingPageContent({
         <div className="relative">
           {/* Text content - constrained to red column */}
           <div className="relative mx-auto max-w-300 px-4 pt-18 text-center md:px-12">
-            <p className="font-bold text-black">Hi {guestName}</p>
+            <p className="font-bold text-black">
+              Hi {guestName}
+              {plusOneDisplayName ? ` and ${plusOneDisplayName}` : ""}
+            </p>
             <h1 className="heading-1 mt-10 text-black uppercase">
               Bel &amp; Jon
               <br />

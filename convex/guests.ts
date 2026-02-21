@@ -38,6 +38,7 @@ export const getGuestBySlug = query({
       name: v.string(),
       slug: v.string(),
       attending: v.optional(v.boolean()),
+      plusOne: v.optional(v.string()),
     }),
   ),
   handler: async (ctx, args) => {
@@ -51,6 +52,7 @@ export const getGuestBySlug = query({
           name: guest.name,
           slug: guest.slug,
           attending: guest.attending,
+          plusOne: guest.plusOne,
         }
       : null;
   },
