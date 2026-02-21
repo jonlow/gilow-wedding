@@ -45,7 +45,7 @@ export function WeddingPageContent({
               width={147}
               height={103}
               preload
-              className="absolute -right-12 bottom-[-5%] h-auto w-[99px] lg:-right-20 lg:bottom-[10%] lg:w-[147px]"
+              className="absolute bottom-[65%] -left-12 h-auto w-[99px] lg:bottom-[60%] lg:-left-20 lg:w-[147px]"
             />
           </div>
 
