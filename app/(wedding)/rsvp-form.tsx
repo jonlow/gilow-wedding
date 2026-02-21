@@ -73,8 +73,16 @@ export function RsvpForm({ guestSlug }: RsvpFormProps) {
             />
             <span className="checkbox-custom peer-focus-visible:ring-2 peer-focus-visible:ring-black peer-focus-visible:ring-offset-2" />
           </span>
-          <span className="heading-2 relative text-3xl leading-none md:top-[-6px] md:text-7xl">
-            NO
+          <span className="flex items-center gap-2">
+            <span className="heading-2 relative text-3xl leading-none md:top-[-6px] md:text-7xl">
+              NO
+            </span>
+            <span
+              aria-hidden="true"
+              className="pointer-events-none relative -top-[2px] inline-flex w-8 items-center justify-center text-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100 md:w-12 md:text-4xl"
+            >
+              😢
+            </span>
           </span>
         </label>
       </div>
