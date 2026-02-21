@@ -1,4 +1,4 @@
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { optionalAuth, requireAuth } from "./lib/auth";
 
@@ -232,5 +232,33 @@ export const deleteGuest = mutation({
     await requireAuth(ctx, args.token);
     await ctx.db.delete(args.guestId);
     return null;
+  },
+});
+
+export const resetAllGuestRsvpsForTesting = internalMutation({
+  args: {},
+  returns: v.object({
+    ok: v.boolean(),
+    totalGuests: v.number(),
+    resetCount: v.number(),
+  }),
+  handler: async (ctx) => {
+    const guests = await ctx.db.query("guests").collect();
+
+    let resetCount = 0;
+    await Promise.all(
+      guests.map(async (guest) => {
+        if (guest.attending !== undefined) {
+          await ctx.db.patch(guest._id, { attending: undefined });
+          resetCount += 1;
+        }
+      }),
+    );
+
+    return {
+      ok: true,
+      totalGuests: guests.length,
+      resetCount,
+    };
   },
 });
