@@ -30,6 +30,7 @@ export function WeddingPageContent({ guestName }: WeddingPageContentProps) {
             <Image
               src="/APNG/cloud1.png"
               alt="Cloud"
+              unoptimized
               width={147}
               height={103}
               preload
@@ -41,6 +42,7 @@ export function WeddingPageContent({ guestName }: WeddingPageContentProps) {
           <div className="relative right-1/2 left-1/2 -mx-[50vw] flex w-screen justify-center overflow-hidden">
             <Image
               src="/APNG/people.png"
+              unoptimized
               alt="Wedding celebration illustration"
               width={1920}
               height={448}
@@ -70,6 +72,7 @@ export function WeddingPageContent({ guestName }: WeddingPageContentProps) {
         <Image
           src="/APNG/cloud4.png"
           alt="Cloud"
+          unoptimized
           width={100}
           height={46}
           priority
@@ -96,6 +99,7 @@ export function WeddingPageContent({ guestName }: WeddingPageContentProps) {
         <Image
           src="/APNG/cloud3.png"
           alt="Cloud"
+          unoptimized
           width={168}
           height={88}
           priority
