@@ -8,13 +8,13 @@
   h4,
   h5,
   h6 {
-    line-height: 0.96;
+    line-height: 1.05;
   }
 
   p {
     font-size: 25px;
     margin-bottom: 24px;
-    line-height: 0.96;
+    line-height: 1.05;
 
     &:last-child {
       margin-bottom: 0 !important;
