@@ -24,13 +24,17 @@ export function invitationEmail({ names, buttonLink }: InvitationEmailProps) {
       }
     </style>
   </head>
-  <body style="margin:0;padding:0;">
+  <body style="margin:0;padding:0;background-color:#ffffff;">
     <span style="display:none;visibility:hidden;opacity:0;color:transparent;height:0;width:0;max-height:0;max-width:0;overflow:hidden;">${previewText}</span>
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="padding:32px 12px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
       <tr>
-        <td align="center">
-          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:700px;">
-            
+        <td align="center" style="padding:32px 12px;">
+          <!--[if mso]>
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="700" style="width:700px;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+            <tr>
+              <td>
+          <![endif]-->
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:700px;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
           <tr>
            <td class="mobile-padding" style="padding:32px 32px 8px;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;text-align:center;">
                 <p class="mobile-text" style="margin:0 0 20px;font-size:16px;line-height:1.6;">
@@ -76,7 +80,8 @@ export function invitationEmail({ names, buttonLink }: InvitationEmailProps) {
                       src="https://www.belandjon.com/bel-jon-sig.png"
                       alt="Bel and Jon signature"
                       width="200"
-                      style="display:block;width:200px;max-width:100%;height:auto;border:0;outline:none;text-decoration:none;margin:0 auto;"
+                      height="47"
+                      style="display:block;width:200px;height:47px;max-width:100%;border:0;outline:none;text-decoration:none;margin:0 auto;"
                     />
                   </td>
                 </tr>
@@ -84,6 +89,11 @@ export function invitationEmail({ names, buttonLink }: InvitationEmailProps) {
             </td>
           </tr>
           </table>
+          <!--[if mso]>
+              </td>
+            </tr>
+          </table>
+          <![endif]-->
         </td>
       </tr>
     </table>
