@@ -153,6 +153,7 @@ export function GuestTable({ guests }: GuestTableProps) {
                 </TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
+                <TableHead>RSVP</TableHead>
                 <TableHead>Plus One</TableHead>
                 <TableHead>Slug</TableHead>
                 <TableHead>Messages</TableHead>
@@ -176,6 +177,13 @@ export function GuestTable({ guests }: GuestTableProps) {
                   </TableCell>
                   <TableCell className="font-medium">{guest.name}</TableCell>
                   <TableCell>{guest.email}</TableCell>
+                  <TableCell>
+                    {guest.attending === true
+                      ? "Yes"
+                      : guest.attending === false
+                        ? "No"
+                        : "No response"}
+                  </TableCell>
                   <TableCell>{guest.plusOne?.trim() || "—"}</TableCell>
                   <TableCell className="font-mono text-xs">
                     {guest.slug}

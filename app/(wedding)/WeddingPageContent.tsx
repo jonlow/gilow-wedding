@@ -3,9 +3,13 @@ import { RsvpForm } from "./rsvp-form";
 
 type WeddingPageContentProps = {
   guestName: string;
+  guestSlug: string;
 };
 
-export function WeddingPageContent({ guestName }: WeddingPageContentProps) {
+export function WeddingPageContent({
+  guestName,
+  guestSlug,
+}: WeddingPageContentProps) {
   return (
     <div className="wedding-content min-h-screen overflow-x-hidden bg-white">
       {/* Hero section with red background column */}
@@ -109,7 +113,7 @@ export function WeddingPageContent({ guestName }: WeddingPageContentProps) {
 
       {/* RSVP Section */}
       <div className="prose-narrow relative mx-auto max-w-300 px-4 pt-18 text-center text-black md:px-12">
-        <RsvpForm />
+        <RsvpForm guestSlug={guestSlug} />
         <Image
           src="/APNG/cheers.png"
           alt="Cheers celebration illustration"

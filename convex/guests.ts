@@ -34,7 +34,10 @@ export const getGuestBySlug = query({
   returns: v.union(
     v.null(),
     v.object({
+      _id: v.id("guests"),
       name: v.string(),
+      slug: v.string(),
+      attending: v.optional(v.boolean()),
     }),
   ),
   handler: async (ctx, args) => {
@@ -42,7 +45,43 @@ export const getGuestBySlug = query({
       .query("guests")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .unique();
-    return guest ? { name: guest.name } : null;
+    return guest
+      ? {
+          _id: guest._id,
+          name: guest.name,
+          slug: guest.slug,
+          attending: guest.attending,
+        }
+      : null;
+  },
+});
+
+export const submitGuestRsvp = mutation({
+  args: {
+    slug: v.string(),
+    response: v.union(v.literal("yes"), v.literal("no")),
+  },
+  returns: v.object({
+    ok: v.boolean(),
+    attending: v.boolean(),
+  }),
+  handler: async (ctx, args) => {
+    const guest = await ctx.db
+      .query("guests")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .unique();
+
+    if (!guest) {
+      throw new Error("Guest not found");
+    }
+
+    const attending = args.response === "yes";
+    await ctx.db.patch(guest._id, { attending });
+
+    return {
+      ok: true,
+      attending,
+    };
   },
 });
 

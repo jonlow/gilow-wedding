@@ -3,9 +3,14 @@
 import { useState, useTransition, useRef } from "react";
 import { submitRsvp } from "./actions";
 
-export function RsvpForm() {
+interface RsvpFormProps {
+  guestSlug: string;
+}
+
+export function RsvpForm({ guestSlug }: RsvpFormProps) {
   const [isPending, startTransition] = useTransition();
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
   if (isSubmitted) {
@@ -20,14 +25,21 @@ export function RsvpForm() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData(formRef.current!);
-    setIsSubmitted(true);
+    setError(null);
     startTransition(async () => {
-      await submitRsvp(formData);
+      try {
+        await submitRsvp(formData);
+        setIsSubmitted(true);
+      } catch (submitError) {
+        console.error("Failed to submit RSVP:", submitError);
+        setError("Could not submit RSVP. Please try again.");
+      }
     });
   };
 
   return (
     <form ref={formRef} onSubmit={handleSubmit}>
+      <input type="hidden" name="guestSlug" value={guestSlug} />
       <p className="mb-16">
         RSVP here by checking a box then pressing &quot;SUBMIT&quot;
       </p>
@@ -74,6 +86,8 @@ export function RsvpForm() {
       >
         SUBMIT
       </button>
+
+      {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
 
       <p className="mt-20">
         Questions? Send them to{" "}

@@ -34,5 +34,5 @@ export default async function GuestPage({ params }: GuestPageProps) {
     notFound();
   }
 
-  return <WeddingPageContent guestName={guest.name} />;
+  return <WeddingPageContent guestName={guest.name} guestSlug={guest.slug} />;
 }
