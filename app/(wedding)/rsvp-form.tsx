@@ -91,8 +91,8 @@ export function RsvpForm({ guestSlug }: RsvpFormProps) {
 
       <p className="mt-20">
         Questions? Send them to{" "}
-        <a href="mailto:questions@bel&jon.com" className="font-bold">
-          questions@bel&amp;jon.com
+        <a href="mailto:howdy@bel&jon.com" className="font-bold">
+          howdy@bel&amp;jon.com
         </a>
       </p>
     </form>
