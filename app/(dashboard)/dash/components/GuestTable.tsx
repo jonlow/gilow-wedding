@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { MoreHorizontal, Mail } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { MoreHorizontal, Mail, Copy, Check } from "lucide-react";
 import { useMutation } from "convex/react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -54,6 +54,7 @@ export function GuestTable({ guests }: GuestTableProps) {
   const token = useAuthToken();
   const [selectedGuests, setSelectedGuests] = useState<Array<Id<"guests">>>([]);
   const [mounted, setMounted] = useState(false);
+  const [copiedGuestId, setCopiedGuestId] = useState<Id<"guests"> | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [guestToDelete, setGuestToDelete] = useState<{
     id: Id<"guests">;
@@ -62,10 +63,19 @@ export function GuestTable({ guests }: GuestTableProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [editSheetOpen, setEditSheetOpen] = useState(false);
   const [guestToEdit, setGuestToEdit] = useState<Guest | null>(null);
+  const copiedResetTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const deleteGuest = useMutation(api.guests.deleteGuest);
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (copiedResetTimeout.current) {
+        clearTimeout(copiedResetTimeout.current);
+      }
+    };
   }, []);
 
   const handleDeleteClick = (id: Id<"guests">, name: string) => {
@@ -109,6 +119,26 @@ export function GuestTable({ guests }: GuestTableProps) {
     setSelectedGuests((prev) =>
       prev.includes(id) ? prev.filter((gid) => gid !== id) : [...prev, id],
     );
+  };
+
+  const handleCopyGuestUrl = async (slug: string, guestId: Id<"guests">) => {
+    const normalizedSlug = slug.replace(/^\/+/, "");
+    const guestUrl = `${window.location.origin}/${normalizedSlug}`;
+
+    try {
+      await navigator.clipboard.writeText(guestUrl);
+      setCopiedGuestId(guestId);
+
+      if (copiedResetTimeout.current) {
+        clearTimeout(copiedResetTimeout.current);
+      }
+
+      copiedResetTimeout.current = setTimeout(() => {
+        setCopiedGuestId(null);
+      }, 1500);
+    } catch (error) {
+      console.error("Failed to copy guest URL:", error);
+    }
   };
 
   return (
@@ -186,7 +216,38 @@ export function GuestTable({ guests }: GuestTableProps) {
                   </TableCell>
                   <TableCell>{guest.plusOne?.trim() || "—"}</TableCell>
                   <TableCell className="font-mono text-xs">
-                    {guest.slug}
+                    <div className="flex items-center gap-1">
+                      <span>{guest.slug}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => handleCopyGuestUrl(guest.slug, guest._id)}
+                        aria-label={
+                          copiedGuestId === guest._id
+                            ? `Copied link for ${guest.name}`
+                            : `Copy guest link for ${guest.name}`
+                        }
+                        title={
+                          copiedGuestId === guest._id
+                            ? "Copied"
+                            : "Copy guest link"
+                        }
+                        disabled={!mounted}
+                      >
+                        {copiedGuestId === guest._id ? (
+                          <Check className="h-3.5 w-3.5" />
+                        ) : (
+                          <Copy className="h-3.5 w-3.5" />
+                        )}
+                        <span className="sr-only">
+                          {copiedGuestId === guest._id
+                            ? "Copied guest link"
+                            : "Copy guest link"}
+                        </span>
+                      </Button>
+                    </div>
                   </TableCell>
                   <TableCell>{guest.messages?.length ?? 0}</TableCell>
                   <TableCell>
