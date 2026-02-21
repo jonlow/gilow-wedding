@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { SheetFooter, SheetClose } from "@/components/ui/sheet";
 import {
   Form,
@@ -15,6 +16,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 // Form validation schema - exported for reuse
 export const guestFormSchema = z.object({
@@ -28,6 +30,9 @@ export const guestFormSchema = z.object({
     message: "Slug is required.",
   }),
   plusOne: z.string().optional(),
+  attending: z.enum(["pending", "yes", "no"]),
+  inviteSent: z.boolean(),
+  messages: z.string().optional(),
 });
 
 export type GuestFormValues = z.infer<typeof guestFormSchema>;
@@ -42,7 +47,15 @@ interface GuestFormProps {
 }
 
 export function GuestForm({
-  defaultValues = { name: "", email: "", slug: "", plusOne: "" },
+  defaultValues = {
+    name: "",
+    email: "",
+    slug: "",
+    plusOne: "",
+    attending: "pending",
+    inviteSent: false,
+    messages: "",
+  },
   onSubmit,
   onCancel,
   isSubmitting = false,
@@ -92,7 +105,7 @@ export function GuestForm({
                     {...field}
                   />
                 </FormControl>
-                <FormDescription>The guest's email address.</FormDescription>
+                <FormDescription>The guest&apos;s email address.</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -123,7 +136,83 @@ export function GuestForm({
                   <Input placeholder="Jane Doe" {...field} />
                 </FormControl>
                 <FormDescription>
-                  Name of the guest's plus one, if applicable.
+                  Name of the guest&apos;s plus one, if applicable.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="attending"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>RSVP Status</FormLabel>
+                <FormControl>
+                  <select
+                    className="border-input bg-background ring-offset-background focus-visible:ring-ring focus-visible:ring-offset-background h-9 w-full rounded-md border px-3 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                    value={field.value}
+                    onChange={(event) => field.onChange(event.target.value)}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    ref={field.ref}
+                  >
+                    <option value="pending">No response</option>
+                    <option value="yes">Attending</option>
+                    <option value="no">Not attending</option>
+                  </select>
+                </FormControl>
+                <FormDescription>
+                  Current RSVP status for this guest.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="inviteSent"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex items-start gap-3 rounded-md border p-3">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={(checked) =>
+                        field.onChange(checked === true)
+                      }
+                    />
+                  </FormControl>
+                  <div className="space-y-1">
+                    <FormLabel>Invite sent</FormLabel>
+                    <FormDescription>
+                      Mark whether this guest has already been invited.
+                    </FormDescription>
+                  </div>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="messages"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Messages (Optional)</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="One message per line"
+                    rows={4}
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    ref={field.ref}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Notes from this guest. Use one line per message.
                 </FormDescription>
                 <FormMessage />
               </FormItem>

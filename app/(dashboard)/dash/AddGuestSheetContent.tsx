@@ -26,6 +26,20 @@ interface AddGuestSheetContentProps {
   onClose: () => void;
 }
 
+function toAttendingValue(attending: GuestFormValues["attending"]) {
+  if (attending === "yes") return true;
+  if (attending === "no") return false;
+  return undefined;
+}
+
+function toMessagesArray(messages?: string) {
+  const parsed = (messages ?? "")
+    .split(/\r?\n/)
+    .map((message) => message.trim())
+    .filter(Boolean);
+  return parsed.length > 0 ? parsed : undefined;
+}
+
 export function AddGuestSheetContent({ onClose }: AddGuestSheetContentProps) {
   const token = useAuthToken();
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -41,12 +55,16 @@ export function AddGuestSheetContent({ onClose }: AddGuestSheetContentProps) {
 
   async function onSubmit(values: GuestFormValues) {
     try {
+      const plusOne = values.plusOne?.trim() || undefined;
       const result = await addGuest({
         token,
         name: values.name,
         email: values.email,
         slug: values.slug,
-        plusOne: values.plusOne || undefined,
+        plusOne,
+        attending: toAttendingValue(values.attending),
+        inviteSent: values.inviteSent,
+        messages: toMessagesArray(values.messages),
         force: false,
       });
 
@@ -69,12 +87,16 @@ export function AddGuestSheetContent({ onClose }: AddGuestSheetContentProps) {
     if (!pendingValues) return;
     try {
       setIsForceSubmitting(true);
+      const plusOne = pendingValues.plusOne?.trim() || undefined;
       const result = await addGuest({
         token,
         name: pendingValues.name,
         email: pendingValues.email,
         slug: pendingValues.slug,
-        plusOne: pendingValues.plusOne || undefined,
+        plusOne,
+        attending: toAttendingValue(pendingValues.attending),
+        inviteSent: pendingValues.inviteSent,
+        messages: toMessagesArray(pendingValues.messages),
         force: true,
       });
 

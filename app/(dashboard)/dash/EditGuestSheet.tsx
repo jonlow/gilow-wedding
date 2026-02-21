@@ -32,8 +32,31 @@ interface EditGuestSheetProps {
     name: string;
     email: string;
     slug: string;
+    attending?: boolean;
+    inviteSent: boolean;
     plusOne?: string;
+    messages?: string[];
   } | null;
+}
+
+function toAttendingValue(attending: GuestFormValues["attending"]) {
+  if (attending === "yes") return true;
+  if (attending === "no") return false;
+  return undefined;
+}
+
+function fromAttendingValue(attending?: boolean): GuestFormValues["attending"] {
+  if (attending === true) return "yes";
+  if (attending === false) return "no";
+  return "pending";
+}
+
+function toMessagesArray(messages?: string) {
+  const parsed = (messages ?? "")
+    .split(/\r?\n/)
+    .map((message) => message.trim())
+    .filter(Boolean);
+  return parsed.length > 0 ? parsed : undefined;
 }
 
 export function EditGuestSheet({
@@ -57,13 +80,17 @@ export function EditGuestSheet({
 
   const handleSubmit = async (values: GuestFormValues) => {
     try {
+      const plusOne = values.plusOne?.trim() || undefined;
       const result = await updateGuest({
         token,
         guestId: guest._id,
         name: values.name,
         email: values.email,
         slug: values.slug,
-        plusOne: values.plusOne || undefined,
+        plusOne,
+        attending: toAttendingValue(values.attending),
+        inviteSent: values.inviteSent,
+        messages: toMessagesArray(values.messages),
         force: false,
       });
 
@@ -86,13 +113,17 @@ export function EditGuestSheet({
     if (!pendingValues) return;
     try {
       setIsForceSubmitting(true);
+      const plusOne = pendingValues.plusOne?.trim() || undefined;
       const result = await updateGuest({
         token,
         guestId: guest._id,
         name: pendingValues.name,
         email: pendingValues.email,
         slug: pendingValues.slug,
-        plusOne: pendingValues.plusOne || undefined,
+        plusOne,
+        attending: toAttendingValue(pendingValues.attending),
+        inviteSent: pendingValues.inviteSent,
+        messages: toMessagesArray(pendingValues.messages),
         force: true,
       });
 
@@ -131,6 +162,9 @@ export function EditGuestSheet({
               email: guest.email,
               slug: guest.slug,
               plusOne: guest.plusOne ?? "",
+              attending: fromAttendingValue(guest.attending),
+              inviteSent: guest.inviteSent,
+              messages: guest.messages?.join("\n") ?? "",
             }}
             onSubmit={handleSubmit}
             submitLabel="Save Changes"

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { MoreHorizontal, Mail, Copy, Check, Plus } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useMutation } from "convex/react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -34,6 +35,7 @@ import { api } from "@/convex/_generated/api";
 import { useAuthToken } from "../hooks/useAuthToken";
 import { EditGuestSheet } from "../EditGuestSheet";
 import { DeleteGuestDialog } from "./DeleteGuestDialog";
+import { ResendInviteDialog } from "./ResendInviteDialog";
 
 const AddGuestSheet = dynamic(() => import("../AddGuestSheet"), {
   ssr: false,
@@ -49,6 +51,7 @@ type Guest = {
   _id: Id<"guests">;
   _creationTime: number;
   attending?: boolean;
+  inviteSent: boolean;
   name: string;
   email: string;
   slug: string;
@@ -73,6 +76,10 @@ export function GuestTable({ guests }: GuestTableProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [editSheetOpen, setEditSheetOpen] = useState(false);
   const [guestToEdit, setGuestToEdit] = useState<Guest | null>(null);
+  const [resendDialogOpen, setResendDialogOpen] = useState(false);
+  const [guestToResend, setGuestToResend] = useState<Guest | null>(null);
+  const [sendingInviteGuestId, setSendingInviteGuestId] =
+    useState<Id<"guests"> | null>(null);
   const copiedResetTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const deleteGuest = useMutation(api.guests.deleteGuest);
 
@@ -96,6 +103,13 @@ export function GuestTable({ guests }: GuestTableProps) {
   const handleEditClick = (guest: Guest) => {
     setGuestToEdit(guest);
     setEditSheetOpen(true);
+  };
+
+  const handleResendDialogOpenChange = (open: boolean) => {
+    setResendDialogOpen(open);
+    if (!open) {
+      setGuestToResend(null);
+    }
   };
 
   const confirmDelete = async () => {
@@ -151,6 +165,69 @@ export function GuestTable({ guests }: GuestTableProps) {
     }
   };
 
+  const sendInvite = async (guest: Guest) => {
+    if (sendingInviteGuestId) return;
+
+    try {
+      setSendingInviteGuestId(guest._id);
+      const normalizedSlug = guest.slug.replace(/^\/+/, "");
+      const buttonLink = `${window.location.origin}/${normalizedSlug}`;
+
+      const response = await fetch("/api/test-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          token,
+          guestId: guest._id,
+          name: guest.name,
+          email: guest.email,
+          slug: guest.slug,
+          plusOne: guest.plusOne,
+          buttonLink,
+        }),
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as
+          | { error?: string }
+          | null;
+        throw new Error(payload?.error || "Failed to send invite");
+      }
+
+      toast.success(`Invite sent to ${guest.name}.`);
+    } catch (error) {
+      console.error("Failed to send invite:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to send invite",
+      );
+    } finally {
+      setSendingInviteGuestId(null);
+    }
+  };
+
+  const handleSendInvite = (guest: Guest) => {
+    if (sendingInviteGuestId) return;
+
+    if (guest.inviteSent) {
+      setGuestToResend(guest);
+      setResendDialogOpen(true);
+      return;
+    }
+
+    void sendInvite(guest);
+  };
+
+  const confirmResendInvite = () => {
+    if (!guestToResend) return;
+
+    const guest = guestToResend;
+    setResendDialogOpen(false);
+    setGuestToResend(null);
+    void sendInvite(guest);
+  };
+
   return (
     <>
       <Card>
@@ -194,6 +271,7 @@ export function GuestTable({ guests }: GuestTableProps) {
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>RSVP</TableHead>
+                <TableHead>Invite Sent</TableHead>
                 <TableHead>Plus One</TableHead>
                 <TableHead>Slug</TableHead>
                 <TableHead>Messages</TableHead>
@@ -224,6 +302,7 @@ export function GuestTable({ guests }: GuestTableProps) {
                         ? "No"
                         : "No response"}
                   </TableCell>
+                  <TableCell>{guest.inviteSent ? "Yes" : "No"}</TableCell>
                   <TableCell>{guest.plusOne?.trim() || "—"}</TableCell>
                   <TableCell className="font-mono text-xs">
                     <div className="flex items-center gap-1">
@@ -278,6 +357,14 @@ export function GuestTable({ guests }: GuestTableProps) {
                           >
                             Copy email
                           </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleSendInvite(guest)}
+                            disabled={sendingInviteGuestId === guest._id}
+                          >
+                            {sendingInviteGuestId === guest._id
+                              ? "Sending invite..."
+                              : "Send invite"}
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem>View details</DropdownMenuItem>
                           <DropdownMenuItem
@@ -307,6 +394,14 @@ export function GuestTable({ guests }: GuestTableProps) {
           </Table>
         </CardContent>
       </Card>
+
+      <ResendInviteDialog
+        open={resendDialogOpen && mounted}
+        onOpenChange={handleResendDialogOpenChange}
+        guestName={guestToResend?.name}
+        isSending={Boolean(sendingInviteGuestId)}
+        onConfirm={confirmResendInvite}
+      />
 
       <DeleteGuestDialog
         open={deleteDialogOpen && mounted}

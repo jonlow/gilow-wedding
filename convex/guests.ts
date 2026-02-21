@@ -11,6 +11,7 @@ export const listGuests = query({
       _id: v.id("guests"),
       _creationTime: v.number(),
       attending: v.optional(v.boolean()),
+      inviteSent: v.boolean(),
       name: v.string(),
       email: v.string(),
       slug: v.string(),
@@ -23,7 +24,11 @@ export const listGuests = query({
     if (!auth) {
       return [];
     }
-    return await ctx.db.query("guests").collect();
+    const guests = await ctx.db.query("guests").collect();
+    return guests.map((guest) => ({
+      ...guest,
+      inviteSent: guest.inviteSent ?? false,
+    }));
   },
 });
 
@@ -94,6 +99,9 @@ export const addGuest = mutation({
     email: v.string(),
     slug: v.string(),
     plusOne: v.optional(v.string()),
+    attending: v.optional(v.boolean()),
+    inviteSent: v.optional(v.boolean()),
+    messages: v.optional(v.array(v.string())),
     force: v.optional(v.boolean()),
   },
   returns: v.object({
@@ -142,6 +150,9 @@ export const addGuest = mutation({
       email: args.email,
       slug: args.slug,
       plusOne: args.plusOne,
+      attending: args.attending,
+      inviteSent: args.inviteSent ?? false,
+      messages: args.messages,
     });
 
     return {
@@ -160,6 +171,9 @@ export const updateGuest = mutation({
     email: v.string(),
     slug: v.string(),
     plusOne: v.optional(v.string()),
+    attending: v.optional(v.boolean()),
+    inviteSent: v.optional(v.boolean()),
+    messages: v.optional(v.array(v.string())),
     force: v.optional(v.boolean()),
   },
   returns: v.object({
@@ -215,6 +229,9 @@ export const updateGuest = mutation({
       email: args.email,
       slug: args.slug,
       plusOne: args.plusOne,
+      attending: args.attending,
+      inviteSent: args.inviteSent ?? false,
+      messages: args.messages,
     });
 
     return {
@@ -234,6 +251,32 @@ export const deleteGuest = mutation({
     await requireAuth(ctx, args.token);
     await ctx.db.delete(args.guestId);
     return null;
+  },
+});
+
+export const markInviteSent = mutation({
+  args: {
+    token: v.string(),
+    guestId: v.id("guests"),
+  },
+  returns: v.object({
+    ok: v.boolean(),
+    inviteSent: v.boolean(),
+  }),
+  handler: async (ctx, args) => {
+    await requireAuth(ctx, args.token);
+
+    const guest = await ctx.db.get(args.guestId);
+    if (!guest) {
+      throw new Error("Guest not found");
+    }
+
+    await ctx.db.patch(args.guestId, { inviteSent: true });
+
+    return {
+      ok: true,
+      inviteSent: true,
+    };
   },
 });
 
