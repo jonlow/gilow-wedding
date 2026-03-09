@@ -193,8 +193,13 @@ export function GuestTable({ guests }: GuestTableProps) {
   const sendInvite = async (guest: Guest) => {
     if (sendingInviteGuestId) return;
 
+    const toastId = `send-invite-${guest._id}`;
+
     try {
       setSendingInviteGuestId(guest._id);
+      toast.loading(`Sending invite to ${guest.name}...`, {
+        id: toastId,
+      });
       const normalizedSlug = guest.slug.replace(/^\/+/, "");
       const buttonLink = `${window.location.origin}/${normalizedSlug}`;
 
@@ -221,11 +226,16 @@ export function GuestTable({ guests }: GuestTableProps) {
         throw new Error(payload?.error || "Failed to send invite");
       }
 
-      toast.success(`Invite sent to ${guest.name}.`);
+      toast.success(`Invite sent to ${guest.name}.`, {
+        id: toastId,
+      });
     } catch (error) {
       console.error("Failed to send invite:", error);
       toast.error(
         error instanceof Error ? error.message : "Failed to send invite",
+        {
+          id: toastId,
+        },
       );
     } finally {
       setSendingInviteGuestId(null);
