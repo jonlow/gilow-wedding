@@ -1,6 +1,5 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
-import { Noto_Sans_Telugu } from "next/font/google";
 
 export default defineSchema({
   // Other tables here...
@@ -16,6 +15,15 @@ export default defineSchema({
   })
     .index("by_slug", ["slug"])
     .index("by_email", ["email"]),
+
+  guestAuditEvents: defineTable({
+    guestId: v.id("guests"),
+    eventLabel: v.string(),
+    eventAt: v.number(),
+    ipAddress: v.optional(v.string()),
+  })
+    .index("by_guestId", ["guestId"])
+    .index("by_guestId_eventAt", ["guestId", "eventAt"]),
 
   // Dashboard users for authentication
   dashUsers: defineTable({

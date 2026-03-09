@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { MoreHorizontal, Mail, Copy, Check, Plus } from "lucide-react";
+import { MoreHorizontal, Mail, Copy, Check, Plus, ScrollText } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useMutation } from "convex/react";
 import { toast } from "sonner";
@@ -34,9 +34,10 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { api } from "@/convex/_generated/api";
 import { useAuthToken } from "../hooks/useAuthToken";
 import { EditGuestSheet } from "../EditGuestSheet";
-import { DeleteGuestDialog } from "./DeleteGuestDialog";
-import { ResendInviteDialog } from "./ResendInviteDialog";
 import { BulkGuestImport } from "./BulkGuestImport";
+import { DeleteGuestDialog } from "./DeleteGuestDialog";
+import { GuestAuditSheet } from "./GuestAuditSheet";
+import { ResendInviteDialog } from "./ResendInviteDialog";
 
 const AddGuestSheet = dynamic(() => import("../AddGuestSheet"), {
   ssr: false,
@@ -79,6 +80,11 @@ export function GuestTable({ guests }: GuestTableProps) {
   const [guestToEdit, setGuestToEdit] = useState<Guest | null>(null);
   const [resendDialogOpen, setResendDialogOpen] = useState(false);
   const [guestToResend, setGuestToResend] = useState<Guest | null>(null);
+  const [auditSheetOpen, setAuditSheetOpen] = useState(false);
+  const [guestForAudit, setGuestForAudit] = useState<{
+    _id: Id<"guests">;
+    name: string;
+  } | null>(null);
   const [sendingInviteGuestId, setSendingInviteGuestId] =
     useState<Id<"guests"> | null>(null);
   const [activeTab, setActiveTab] = useState<"guests" | "import">("guests");
@@ -105,6 +111,11 @@ export function GuestTable({ guests }: GuestTableProps) {
   const handleEditClick = (guest: Guest) => {
     setGuestToEdit(guest);
     setEditSheetOpen(true);
+  };
+
+  const handleAuditLogClick = (guest: Guest) => {
+    setGuestForAudit({ _id: guest._id, name: guest.name });
+    setAuditSheetOpen(true);
   };
 
   const handleResendDialogOpenChange = (open: boolean) => {
@@ -393,6 +404,12 @@ export function GuestTable({ guests }: GuestTableProps) {
                             >
                               Edit guest
                             </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleAuditLogClick(guest)}
+                            >
+                              <ScrollText className="mr-2 h-4 w-4" />
+                              View log
+                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
 
                             <DropdownMenuItem
@@ -441,6 +458,13 @@ export function GuestTable({ guests }: GuestTableProps) {
         open={editSheetOpen && mounted}
         onOpenChange={setEditSheetOpen}
         guest={guestToEdit}
+      />
+
+      <GuestAuditSheet
+        open={auditSheetOpen && mounted}
+        onOpenChange={setAuditSheetOpen}
+        guest={guestForAudit}
+        token={token}
       />
     </>
   );

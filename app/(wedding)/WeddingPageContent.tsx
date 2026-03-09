@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { RsvpForm } from "./rsvp-form";
+import { InvitePageViewTracker } from "./InvitePageViewTracker";
 
 type WeddingPageContentProps = {
   guestName: string;
@@ -16,6 +17,7 @@ export function WeddingPageContent({
 
   return (
     <div className="wedding-content min-h-screen overflow-x-hidden bg-white">
+      <InvitePageViewTracker guestSlug={guestSlug} />
       {/* Hero section with red background column */}
       <div className="relative">
         {/* Red column background - centered, max 1200px, extends down behind the image overlap */}

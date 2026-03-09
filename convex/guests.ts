@@ -1,6 +1,22 @@
 import { query, mutation, internalMutation } from "./_generated/server";
+import type { MutationCtx } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 import { v } from "convex/values";
 import { optionalAuth, requireAuth } from "./lib/auth";
+
+async function logGuestAuditEvent(
+  ctx: MutationCtx,
+  guestId: Id<"guests">,
+  eventLabel: string,
+  ipAddress?: string,
+) {
+  await ctx.db.insert("guestAuditEvents", {
+    guestId,
+    eventLabel,
+    eventAt: Date.now(),
+    ipAddress,
+  });
+}
 
 export const listGuests = query({
   args: {
@@ -67,6 +83,7 @@ export const submitGuestRsvp = mutation({
   args: {
     slug: v.string(),
     response: v.union(v.literal("yes"), v.literal("no")),
+    ipAddress: v.optional(v.string()),
   },
   returns: v.object({
     ok: v.boolean(),
@@ -84,6 +101,13 @@ export const submitGuestRsvp = mutation({
 
     const attending = args.response === "yes";
     await ctx.db.patch(guest._id, { attending });
+    const ipAddress = args.ipAddress?.trim();
+    await logGuestAuditEvent(
+      ctx,
+      guest._id,
+      "RSVP submitted",
+      ipAddress ? ipAddress : undefined,
+    );
 
     return {
       ok: true,
@@ -154,6 +178,8 @@ export const addGuest = mutation({
       inviteSent: args.inviteSent ?? false,
       messages: args.messages,
     });
+
+    await logGuestAuditEvent(ctx, guestId, "Guest created");
 
     return {
       status: "created" as const,
@@ -233,6 +259,8 @@ export const updateGuest = mutation({
       inviteSent: args.inviteSent ?? false,
       messages: args.messages,
     });
+
+    await logGuestAuditEvent(ctx, args.guestId, "Guest details updated");
 
     return {
       status: "updated" as const,
@@ -337,6 +365,7 @@ export const deleteGuest = mutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     await requireAuth(ctx, args.token);
+    await logGuestAuditEvent(ctx, args.guestId, "Guest deleted");
     await ctx.db.delete(args.guestId);
     return null;
   },
@@ -360,11 +389,98 @@ export const markInviteSent = mutation({
     }
 
     await ctx.db.patch(args.guestId, { inviteSent: true });
+    await logGuestAuditEvent(ctx, args.guestId, "Invite sent");
 
     return {
       ok: true,
       inviteSent: true,
     };
+  },
+});
+
+export const listGuestAuditEvents = query({
+  args: {
+    token: v.string(),
+    guestId: v.id("guests"),
+  },
+  returns: v.array(
+    v.object({
+      _id: v.id("guestAuditEvents"),
+      _creationTime: v.number(),
+      guestId: v.id("guests"),
+      eventLabel: v.string(),
+      eventAt: v.number(),
+      ipAddress: v.optional(v.string()),
+    }),
+  ),
+  handler: async (ctx, args) => {
+    await requireAuth(ctx, args.token);
+
+    const events = await ctx.db
+      .query("guestAuditEvents")
+      .withIndex("by_guestId_eventAt", (q) => q.eq("guestId", args.guestId))
+      .order("desc")
+      .collect();
+
+    return events;
+  },
+});
+
+export const addGuestAuditEvent = mutation({
+  args: {
+    token: v.string(),
+    guestId: v.id("guests"),
+    eventLabel: v.string(),
+    ipAddress: v.optional(v.string()),
+  },
+  returns: v.object({
+    ok: v.boolean(),
+  }),
+  handler: async (ctx, args) => {
+    await requireAuth(ctx, args.token);
+    const label = args.eventLabel.trim();
+    if (!label) {
+      throw new Error("Event label is required");
+    }
+
+    const ipAddress = args.ipAddress?.trim();
+    await logGuestAuditEvent(
+      ctx,
+      args.guestId,
+      label,
+      ipAddress ? ipAddress : undefined,
+    );
+    return { ok: true };
+  },
+});
+
+export const logInvitePageViewed = mutation({
+  args: {
+    slug: v.string(),
+    ipAddress: v.optional(v.string()),
+  },
+  returns: v.object({
+    ok: v.boolean(),
+  }),
+  handler: async (ctx, args) => {
+    const guest = await ctx.db
+      .query("guests")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .unique();
+
+    if (!guest) {
+      throw new Error("Guest not found");
+    }
+
+    const ipAddress = args.ipAddress?.trim();
+    await logGuestAuditEvent(
+      ctx,
+      guest._id,
+      "Invite page viewed",
+      ipAddress ? ipAddress : undefined,
+    );
+
+    return { ok: true };
   },
 });
 

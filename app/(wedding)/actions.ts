@@ -1,7 +1,9 @@
 "use server";
 
 import { ConvexHttpClient } from "convex/browser";
+import { headers } from "next/headers";
 import { api } from "@/convex/_generated/api";
+import { getRequestIpAddress } from "@/lib/request-ip";
 
 export async function submitRsvp(formData: FormData) {
   const response = formData.get("response");
@@ -20,9 +22,13 @@ export async function submitRsvp(formData: FormData) {
   }
 
   const client = new ConvexHttpClient(convexUrl);
+  const requestHeaders = await headers();
+  const ipAddress = getRequestIpAddress(requestHeaders);
+
   const result = await client.mutation(api.guests.submitGuestRsvp, {
     slug: guestSlug,
     response,
+    ipAddress,
   });
 
   return { success: result.ok, attending: result.attending };
