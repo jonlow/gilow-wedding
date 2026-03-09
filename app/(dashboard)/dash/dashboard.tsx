@@ -2,13 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { usePreloadedQuery } from "convex/react";
+import { usePreloadedQuery, useQuery } from "convex/react";
 import type { Preloaded } from "convex/react";
 import { Button } from "@/components/ui/button";
 import { logout, type AuthUser } from "./auth-actions";
 import { api } from "@/convex/_generated/api";
 import { AuthProvider } from "./hooks/useAuthToken";
-import { ActivityLogSidebar, UserInfoCard, GuestTable } from "./components";
+import { ActivityLogSidebar, DashboardStats, GuestTable } from "./components";
 
 interface DashboardProps {
   user: AuthUser;
@@ -16,21 +16,22 @@ interface DashboardProps {
   token: string;
 }
 
-export function Dashboard({ user, preloadedGuests, token }: DashboardProps) {
+export function Dashboard({ preloadedGuests, token }: DashboardProps) {
   return (
     <AuthProvider token={token}>
-      <DashboardContent user={user} preloadedGuests={preloadedGuests} />
+      <DashboardContent preloadedGuests={preloadedGuests} token={token} />
     </AuthProvider>
   );
 }
 
 interface DashboardContentProps {
-  user: AuthUser;
   preloadedGuests: Preloaded<typeof api.guests.listGuests>;
+  token: string;
 }
 
-function DashboardContent({ user, preloadedGuests }: DashboardContentProps) {
+function DashboardContent({ preloadedGuests, token }: DashboardContentProps) {
   const guests = usePreloadedQuery(preloadedGuests);
+  const auditEvents = useQuery(api.guests.listLatestGuestAuditEvents, { token });
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [cachedGuests, setCachedGuests] = useState(guests);
@@ -57,11 +58,14 @@ function DashboardContent({ user, preloadedGuests }: DashboardContentProps) {
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
         <div className="grid gap-6">
-          <UserInfoCard user={user} />
+          <DashboardStats
+            guests={isLoggingOut ? cachedGuests : guests}
+            auditEvents={auditEvents}
+          />
           <GuestTable guests={isLoggingOut ? cachedGuests : guests} />
         </div>
 
-        <ActivityLogSidebar />
+        <ActivityLogSidebar auditEvents={auditEvents} />
       </div>
     </div>
   );
