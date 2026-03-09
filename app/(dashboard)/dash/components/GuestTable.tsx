@@ -66,7 +66,6 @@ type Guest = {
   email: string;
   slug: string;
   plusOne?: string;
-  messages?: string[];
 };
 
 interface GuestTableProps {
@@ -336,7 +335,6 @@ export function GuestTable({ guests }: GuestTableProps) {
                   <TableHead>Invite Sent</TableHead>
                   <TableHead>Plus One</TableHead>
                   <TableHead>Slug</TableHead>
-                  <TableHead>Messages</TableHead>
                   <TableHead className="w-12.5"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -408,7 +406,6 @@ export function GuestTable({ guests }: GuestTableProps) {
                         </Button>
                       </div>
                     </TableCell>
-                    <TableCell>{guest.messages?.length ?? 0}</TableCell>
                     <TableCell>
                       {mounted ? (
                         <DropdownMenu>

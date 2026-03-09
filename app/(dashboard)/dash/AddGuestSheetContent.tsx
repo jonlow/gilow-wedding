@@ -33,14 +33,6 @@ function toAttendingValue(attending: GuestFormValues["attending"]) {
   return undefined;
 }
 
-function toMessagesArray(messages?: string) {
-  const parsed = (messages ?? "")
-    .split(/\r?\n/)
-    .map((message) => message.trim())
-    .filter(Boolean);
-  return parsed.length > 0 ? parsed : undefined;
-}
-
 export function AddGuestSheetContent({ onClose }: AddGuestSheetContentProps) {
   const token = useAuthToken();
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -67,7 +59,6 @@ export function AddGuestSheetContent({ onClose }: AddGuestSheetContentProps) {
         plusOne,
         attending: toAttendingValue(values.attending),
         inviteSent: values.inviteSent,
-        messages: toMessagesArray(values.messages),
         force: false,
       });
 
@@ -105,7 +96,6 @@ export function AddGuestSheetContent({ onClose }: AddGuestSheetContentProps) {
         plusOne,
         attending: toAttendingValue(pendingValues.attending),
         inviteSent: pendingValues.inviteSent,
-        messages: toMessagesArray(pendingValues.messages),
         force: true,
       });
 

@@ -16,7 +16,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 
 // Form validation schema - exported for reuse
 export const guestFormSchema = z.object({
@@ -33,7 +32,6 @@ export const guestFormSchema = z.object({
   plusOne: z.string().optional(),
   attending: z.enum(["pending", "yes", "no"]),
   inviteSent: z.boolean(),
-  messages: z.string().optional(),
 });
 
 export type GuestFormValues = z.infer<typeof guestFormSchema>;
@@ -56,7 +54,6 @@ export function GuestForm({
     plusOne: "",
     attending: "pending",
     inviteSent: false,
-    messages: "",
   },
   onSubmit,
   onCancel,
@@ -208,30 +205,6 @@ export function GuestForm({
                     </FormDescription>
                   </div>
                 </div>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="messages"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Messages (Optional)</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="One message per line"
-                    rows={4}
-                    value={field.value ?? ""}
-                    onChange={field.onChange}
-                    onBlur={field.onBlur}
-                    name={field.name}
-                    ref={field.ref}
-                  />
-                </FormControl>
-                <FormDescription>
-                  Notes from this guest. Use one line per message.
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

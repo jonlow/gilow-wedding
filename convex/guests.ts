@@ -33,7 +33,6 @@ export const listGuests = query({
       email: v.string(),
       slug: v.string(),
       plusOne: v.optional(v.string()),
-      messages: v.optional(v.array(v.string())),
     }),
   ),
   handler: async (ctx, args) => {
@@ -127,7 +126,6 @@ export const addGuest = mutation({
     plusOne: v.optional(v.string()),
     attending: v.optional(v.boolean()),
     inviteSent: v.optional(v.boolean()),
-    messages: v.optional(v.array(v.string())),
     force: v.optional(v.boolean()),
   },
   returns: v.object({
@@ -179,7 +177,6 @@ export const addGuest = mutation({
       plusOne: args.plusOne,
       attending: args.attending,
       inviteSent: args.inviteSent ?? false,
-      messages: args.messages,
     });
 
     await logGuestAuditEvent(ctx, guestId, "Guest created");
@@ -203,7 +200,6 @@ export const updateGuest = mutation({
     plusOne: v.optional(v.string()),
     attending: v.optional(v.boolean()),
     inviteSent: v.optional(v.boolean()),
-    messages: v.optional(v.array(v.string())),
     force: v.optional(v.boolean()),
   },
   returns: v.object({
@@ -262,7 +258,6 @@ export const updateGuest = mutation({
       plusOne: args.plusOne,
       attending: args.attending,
       inviteSent: args.inviteSent ?? false,
-      messages: args.messages,
     });
 
     await logGuestAuditEvent(ctx, args.guestId, "Guest details updated");

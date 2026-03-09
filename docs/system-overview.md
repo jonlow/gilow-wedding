@@ -19,7 +19,7 @@ This project is a Next.js App Router app backed by Convex for data, auth state, 
 Defined in `convex/schema.ts`:
 
 - `guests`
-  - guest profile data, RSVP state, invite state, plus-one, optional messages
+- guest profile data, RSVP state, invite state, and plus-one
 - `guestAuditEvents`
   - append-only guest timeline events, optionally including `ipAddress`
 - `dashUsers`

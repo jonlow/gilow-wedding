@@ -37,7 +37,6 @@ interface EditGuestSheetProps {
     attending?: boolean;
     inviteSent: boolean;
     plusOne?: string;
-    messages?: string[];
   } | null;
 }
 
@@ -51,14 +50,6 @@ function fromAttendingValue(attending?: boolean): GuestFormValues["attending"] {
   if (attending === true) return "yes";
   if (attending === false) return "no";
   return "pending";
-}
-
-function toMessagesArray(messages?: string) {
-  const parsed = (messages ?? "")
-    .split(/\r?\n/)
-    .map((message) => message.trim())
-    .filter(Boolean);
-  return parsed.length > 0 ? parsed : undefined;
 }
 
 export function EditGuestSheet({
@@ -94,7 +85,6 @@ export function EditGuestSheet({
         plusOne,
         attending: toAttendingValue(values.attending),
         inviteSent: values.inviteSent,
-        messages: toMessagesArray(values.messages),
         force: false,
       });
 
@@ -135,7 +125,6 @@ export function EditGuestSheet({
         plusOne,
         attending: toAttendingValue(pendingValues.attending),
         inviteSent: pendingValues.inviteSent,
-        messages: toMessagesArray(pendingValues.messages),
         force: true,
       });
 
@@ -181,7 +170,6 @@ export function EditGuestSheet({
               plusOne: guest.plusOne ?? "",
               attending: fromAttendingValue(guest.attending),
               inviteSent: guest.inviteSent,
-              messages: guest.messages?.join("\n") ?? "",
             }}
             onSubmit={handleSubmit}
             submitLabel="Save Changes"
