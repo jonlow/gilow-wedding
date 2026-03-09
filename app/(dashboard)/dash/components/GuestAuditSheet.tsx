@@ -28,6 +28,8 @@ type GuestAuditEvent = {
   eventLabel: string;
   eventAt: number;
   ipAddress?: string;
+  city?: string;
+  country?: string;
 };
 
 export function GuestAuditSheet({
@@ -101,6 +103,11 @@ function GuestAuditEventCard({
         </p>
       ) : event.ipAddress ? (
         <p className="text-muted-foreground text-xs">IP: {event.ipAddress}</p>
+      ) : null}
+      {event.city || event.country ? (
+        <p className="text-muted-foreground text-xs">
+          {[event.city, event.country].filter(Boolean).join(", ")}
+        </p>
       ) : null}
     </div>
   );

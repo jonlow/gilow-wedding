@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { fetchMutation } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
-import { getRequestIpAddress } from "@/lib/request-ip";
+import { getRequestIpAddress, getRequestLocation } from "@/lib/request-ip";
 
 export const runtime = "nodejs";
 
@@ -29,6 +29,7 @@ export async function POST(request: Request) {
     await fetchMutation(api.guests.logInvitePageViewed, {
       slug,
       ipAddress: getRequestIpAddress(request.headers),
+      ...getRequestLocation(request.headers),
     });
 
     return NextResponse.json({ ok: true });

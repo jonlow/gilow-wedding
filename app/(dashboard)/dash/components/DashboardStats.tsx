@@ -26,6 +26,8 @@ type AuditEvent = {
   eventLabel: string;
   eventAt: number;
   ipAddress?: string;
+  city?: string;
+  country?: string;
 };
 
 interface DashboardStatsProps {

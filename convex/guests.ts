@@ -9,12 +9,16 @@ async function logGuestAuditEvent(
   guestId: Id<"guests">,
   eventLabel: string,
   ipAddress?: string,
+  city?: string,
+  country?: string,
 ) {
   await ctx.db.insert("guestAuditEvents", {
     guestId,
     eventLabel,
     eventAt: Date.now(),
     ipAddress,
+    city,
+    country,
   });
 }
 
@@ -84,6 +88,8 @@ export const submitGuestRsvp = mutation({
     slug: v.string(),
     response: v.union(v.literal("yes"), v.literal("no")),
     ipAddress: v.optional(v.string()),
+    city: v.optional(v.string()),
+    country: v.optional(v.string()),
   },
   returns: v.object({
     ok: v.boolean(),
@@ -102,11 +108,15 @@ export const submitGuestRsvp = mutation({
     const attending = args.response === "yes";
     await ctx.db.patch(guest._id, { attending });
     const ipAddress = args.ipAddress?.trim();
+    const city = args.city?.trim();
+    const country = args.country?.trim();
     await logGuestAuditEvent(
       ctx,
       guest._id,
       "RSVP submitted",
       ipAddress ? ipAddress : undefined,
+      city ? city : undefined,
+      country ? country : undefined,
     );
 
     return {
@@ -375,6 +385,9 @@ export const markInviteSent = mutation({
   args: {
     token: v.string(),
     guestId: v.id("guests"),
+    ipAddress: v.optional(v.string()),
+    city: v.optional(v.string()),
+    country: v.optional(v.string()),
   },
   returns: v.object({
     ok: v.boolean(),
@@ -389,7 +402,17 @@ export const markInviteSent = mutation({
     }
 
     await ctx.db.patch(args.guestId, { inviteSent: true });
-    await logGuestAuditEvent(ctx, args.guestId, "Invite sent");
+    const ipAddress = args.ipAddress?.trim();
+    const city = args.city?.trim();
+    const country = args.country?.trim();
+    await logGuestAuditEvent(
+      ctx,
+      args.guestId,
+      "Invite sent",
+      ipAddress ? ipAddress : undefined,
+      city ? city : undefined,
+      country ? country : undefined,
+    );
 
     return {
       ok: true,
@@ -411,6 +434,8 @@ export const listGuestAuditEvents = query({
       eventLabel: v.string(),
       eventAt: v.number(),
       ipAddress: v.optional(v.string()),
+      city: v.optional(v.string()),
+      country: v.optional(v.string()),
     }),
   ),
   handler: async (ctx, args) => {
@@ -438,6 +463,8 @@ export const listLatestGuestAuditEvents = query({
       eventLabel: v.string(),
       eventAt: v.number(),
       ipAddress: v.optional(v.string()),
+      city: v.optional(v.string()),
+      country: v.optional(v.string()),
     }),
   ),
   handler: async (ctx, args) => {
@@ -467,6 +494,8 @@ export const listLatestGuestAuditEvents = query({
           eventLabel: event.eventLabel,
           eventAt: event.eventAt,
           ipAddress: event.ipAddress,
+          city: event.city,
+          country: event.country,
         };
       }),
     );
@@ -479,6 +508,8 @@ export const addGuestAuditEvent = mutation({
     guestId: v.id("guests"),
     eventLabel: v.string(),
     ipAddress: v.optional(v.string()),
+    city: v.optional(v.string()),
+    country: v.optional(v.string()),
   },
   returns: v.object({
     ok: v.boolean(),
@@ -491,11 +522,15 @@ export const addGuestAuditEvent = mutation({
     }
 
     const ipAddress = args.ipAddress?.trim();
+    const city = args.city?.trim();
+    const country = args.country?.trim();
     await logGuestAuditEvent(
       ctx,
       args.guestId,
       label,
       ipAddress ? ipAddress : undefined,
+      city ? city : undefined,
+      country ? country : undefined,
     );
     return { ok: true };
   },
@@ -505,6 +540,8 @@ export const logInvitePageViewed = mutation({
   args: {
     slug: v.string(),
     ipAddress: v.optional(v.string()),
+    city: v.optional(v.string()),
+    country: v.optional(v.string()),
   },
   returns: v.object({
     ok: v.boolean(),
@@ -520,11 +557,15 @@ export const logInvitePageViewed = mutation({
     }
 
     const ipAddress = args.ipAddress?.trim();
+    const city = args.city?.trim();
+    const country = args.country?.trim();
     await logGuestAuditEvent(
       ctx,
       guest._id,
       "Invite page viewed",
       ipAddress ? ipAddress : undefined,
+      city ? city : undefined,
+      country ? country : undefined,
     );
 
     return { ok: true };

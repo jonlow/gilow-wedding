@@ -21,6 +21,8 @@ export default defineSchema({
     eventLabel: v.string(),
     eventAt: v.number(),
     ipAddress: v.optional(v.string()),
+    city: v.optional(v.string()),
+    country: v.optional(v.string()),
   })
     .index("by_guestId", ["guestId"])
     .index("by_guestId_eventAt", ["guestId", "eventAt"])

@@ -22,6 +22,8 @@ type AuditEvent = {
   eventLabel: string;
   eventAt: number;
   ipAddress?: string;
+  city?: string;
+  country?: string;
 };
 
 interface ActivityLogSidebarProps {
@@ -59,17 +61,37 @@ export function ActivityLogSidebar({
                       <p className="text-muted-foreground line-clamp-2 text-sm">
                         {event.eventLabel}
                       </p>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="left">
-                    {event.ipAddress ? `IP: ${event.ipAddress}` : "IP unavailable"}
-                  </TooltipContent>
-                </Tooltip>
-              ))
-            )}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="left">
+                  <div className="space-y-1">
+                    <p>{event.ipAddress ? `IP: ${event.ipAddress}` : "IP unavailable"}</p>
+                    <p>{event.city ? `City: ${event.city}` : "City unavailable"}</p>
+                    <p>
+                      {event.country
+                        ? `Country: ${getCountryFlag(event.country)} ${event.country}`
+                        : "Country unavailable"}
+                    </p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            ))
+          )}
           </div>
         </TooltipProvider>
       </CardContent>
     </Card>
+  );
+}
+
+function getCountryFlag(countryCode: string) {
+  const normalizedCode = countryCode.trim().toUpperCase();
+
+  if (!/^[A-Z]{2}$/.test(normalizedCode)) {
+    return "";
+  }
+
+  return String.fromCodePoint(
+    ...normalizedCode.split("").map((char) => 127397 + char.charCodeAt(0)),
   );
 }

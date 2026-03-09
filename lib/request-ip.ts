@@ -10,6 +10,8 @@ const REQUEST_IP_HEADER_NAMES = [
 ] as const;
 
 export const LOCAL_DEVELOPMENT_REQUEST_SOURCE = "local-development";
+const REQUEST_CITY_HEADER_NAME = "x-vercel-ip-city";
+const REQUEST_COUNTRY_HEADER_NAME = "x-vercel-ip-country";
 
 function normalizeIpCandidate(rawValue: string): string | undefined {
   let value = rawValue.trim();
@@ -102,4 +104,28 @@ export function getRequestIpAddress(headerStore: Headers): string | undefined {
   }
 
   return getForwardedHeaderIp(headerStore);
+}
+
+function normalizeLocationValue(rawValue: string | null): string | undefined {
+  if (!rawValue) {
+    return undefined;
+  }
+
+  const value = rawValue.trim();
+  return value ? value : undefined;
+}
+
+export function getRequestLocation(headerStore: Headers): {
+  city?: string;
+  country?: string;
+} {
+  const city = normalizeLocationValue(headerStore.get(REQUEST_CITY_HEADER_NAME));
+  const country = normalizeLocationValue(
+    headerStore.get(REQUEST_COUNTRY_HEADER_NAME),
+  );
+
+  return {
+    city,
+    country,
+  };
 }

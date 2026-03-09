@@ -4,6 +4,7 @@ import { sendEmail } from "@/lib/email";
 import { invitationEmail } from "@/lib/email-templates/invitation";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import { getRequestIpAddress, getRequestLocation } from "@/lib/request-ip";
 
 export const runtime = "nodejs";
 const INVITE_FROM = '"Bel & Jon" <howdy@belandjon.com>';
@@ -72,6 +73,8 @@ export async function POST(request: Request) {
     await fetchMutation(api.guests.markInviteSent, {
       token: payload.token,
       guestId: payload.guestId,
+      ipAddress: getRequestIpAddress(request.headers),
+      ...getRequestLocation(request.headers),
     });
 
     return NextResponse.json({ ok: true, emailResult });
