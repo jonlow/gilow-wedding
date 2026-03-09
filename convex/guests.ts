@@ -511,3 +511,56 @@ export const resetAllGuestRsvpsForTesting = internalMutation({
     };
   },
 });
+
+export const resetGuestStateForTesting = internalMutation({
+  args: {},
+  returns: v.object({
+    ok: v.boolean(),
+    totalGuests: v.number(),
+    resetAttendingCount: v.number(),
+    resetInviteSentCount: v.number(),
+    deletedAuditEventCount: v.number(),
+  }),
+  handler: async (ctx) => {
+    const [guests, auditEvents] = await Promise.all([
+      ctx.db.query("guests").collect(),
+      ctx.db.query("guestAuditEvents").collect(),
+    ]);
+
+    let resetAttendingCount = 0;
+    let resetInviteSentCount = 0;
+
+    await Promise.all(
+      guests.map(async (guest) => {
+        const patch: {
+          attending?: boolean | undefined;
+          inviteSent?: boolean;
+        } = {};
+
+        if (guest.attending !== undefined) {
+          patch.attending = undefined;
+          resetAttendingCount += 1;
+        }
+
+        if (guest.inviteSent) {
+          patch.inviteSent = false;
+          resetInviteSentCount += 1;
+        }
+
+        if (Object.keys(patch).length > 0) {
+          await ctx.db.patch(guest._id, patch);
+        }
+      }),
+    );
+
+    await Promise.all(auditEvents.map((event) => ctx.db.delete(event._id)));
+
+    return {
+      ok: true,
+      totalGuests: guests.length,
+      resetAttendingCount,
+      resetInviteSentCount,
+      deletedAuditEventCount: auditEvents.length,
+    };
+  },
+});
