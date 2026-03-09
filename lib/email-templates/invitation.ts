@@ -15,7 +15,7 @@ function escapeHtml(value: string) {
 export function invitationEmail({ names, buttonLink }: InvitationEmailProps) {
   const safeNames = escapeHtml(names);
   const safeButtonLink = escapeHtml(buttonLink);
-  const previewText = "Bel & Jon invited you to their wedding";
+  const previewText = "We'd love for you to be there!";
   const text = [
     `Hello ${names}!`,
     "",
