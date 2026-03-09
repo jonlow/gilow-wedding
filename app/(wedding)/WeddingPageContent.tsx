@@ -68,7 +68,7 @@ export function WeddingPageContent({
 
       {/* Content below the hero */}
       <div className="mx-auto max-w-300 px-8 py-10 text-center">
-        <p>and we&apos;d love you to be there</p>
+        <p>We&apos;d love you to be there</p>
       </div>
 
       <div className="prose-narrow bg-yellow relative mx-auto mb-12.5 max-w-300 px-4 pt-18 pb-12 text-center md:mb-17.5 md:px-12 md:pb-12">
