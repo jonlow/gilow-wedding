@@ -31,6 +31,7 @@ interface EditGuestSheetProps {
   guest: {
     _id: Id<"guests">;
     name: string;
+    lastName?: string;
     email: string;
     slug: string;
     attending?: boolean;
@@ -82,10 +83,12 @@ export function EditGuestSheet({
   const handleSubmit = async (values: GuestFormValues) => {
     try {
       const plusOne = values.plusOne?.trim() || undefined;
+      const lastName = values.lastName?.trim() || undefined;
       const result = await updateGuest({
         token,
         guestId: guest._id,
         name: values.name,
+        lastName,
         email: values.email,
         slug: values.slug,
         plusOne,
@@ -121,10 +124,12 @@ export function EditGuestSheet({
     try {
       setIsForceSubmitting(true);
       const plusOne = pendingValues.plusOne?.trim() || undefined;
+      const lastName = pendingValues.lastName?.trim() || undefined;
       const result = await updateGuest({
         token,
         guestId: guest._id,
         name: pendingValues.name,
+        lastName,
         email: pendingValues.email,
         slug: pendingValues.slug,
         plusOne,
@@ -170,6 +175,7 @@ export function EditGuestSheet({
             key={guest._id}
             defaultValues={{
               name: guest.name,
+              lastName: guest.lastName ?? "",
               email: guest.email,
               slug: guest.slug,
               plusOne: guest.plusOne ?? "",

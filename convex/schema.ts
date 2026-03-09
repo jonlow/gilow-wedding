@@ -9,6 +9,7 @@ export default defineSchema({
     inviteSent: v.optional(v.boolean()),
     email: v.string(),
     name: v.string(),
+    lastName: v.optional(v.string()),
     slug: v.string(),
     plusOne: v.optional(v.string()),
     messages: v.optional(v.array(v.string())),

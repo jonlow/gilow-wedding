@@ -62,6 +62,7 @@ type Guest = {
   attending?: boolean;
   inviteSent: boolean;
   name: string;
+  lastName?: string;
   email: string;
   slug: string;
   plusOne?: string;
@@ -189,6 +190,12 @@ export function GuestTable({ guests }: GuestTableProps) {
       console.error("Failed to copy guest URL:", error);
     }
   };
+
+  const getDashboardGuestName = (guest: Guest) =>
+    guest.lastName?.trim() ? `${guest.name} ${guest.lastName.trim()}` : guest.name;
+
+  const renderPositiveState = (value: boolean) =>
+    value ? <Check className="mx-auto h-4 w-4" aria-label="Yes" /> : null;
 
   const sendInvite = async (guest: Guest) => {
     if (sendingInviteGuestId) return;
@@ -350,16 +357,20 @@ export function GuestTable({ guests }: GuestTableProps) {
                         aria-label={`Select ${guest.name}`}
                       />
                     </TableCell>
-                    <TableCell className="font-medium">{guest.name}</TableCell>
+                    <TableCell className="font-medium">
+                      {getDashboardGuestName(guest)}
+                    </TableCell>
                     <TableCell>{guest.email}</TableCell>
-                    <TableCell>
+                    <TableCell className="text-center">
                       {guest.attending === true
                         ? "Yes"
                         : guest.attending === false
                           ? "No"
-                          : "Pending"}
+                          : ""}
                     </TableCell>
-                    <TableCell>{guest.inviteSent ? "Yes" : "No"}</TableCell>
+                    <TableCell className="text-center">
+                      {renderPositiveState(guest.inviteSent)}
+                    </TableCell>
                     <TableCell>{guest.plusOne?.trim() || "—"}</TableCell>
                     <TableCell className="font-mono text-xs">
                       <div className="flex items-center gap-1">

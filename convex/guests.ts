@@ -29,6 +29,7 @@ export const listGuests = query({
       attending: v.optional(v.boolean()),
       inviteSent: v.boolean(),
       name: v.string(),
+      lastName: v.optional(v.string()),
       email: v.string(),
       slug: v.string(),
       plusOne: v.optional(v.string()),
@@ -120,6 +121,7 @@ export const addGuest = mutation({
   args: {
     token: v.string(),
     name: v.string(),
+    lastName: v.optional(v.string()),
     email: v.string(),
     slug: v.string(),
     plusOne: v.optional(v.string()),
@@ -171,6 +173,7 @@ export const addGuest = mutation({
     // Create the guest
     const guestId = await ctx.db.insert("guests", {
       name: args.name,
+      lastName: args.lastName,
       email: args.email,
       slug: args.slug,
       plusOne: args.plusOne,
@@ -194,6 +197,7 @@ export const updateGuest = mutation({
     token: v.string(),
     guestId: v.id("guests"),
     name: v.string(),
+    lastName: v.optional(v.string()),
     email: v.string(),
     slug: v.string(),
     plusOne: v.optional(v.string()),
@@ -252,6 +256,7 @@ export const updateGuest = mutation({
     // Update the guest
     await ctx.db.patch(args.guestId, {
       name: args.name,
+      lastName: args.lastName,
       email: args.email,
       slug: args.slug,
       plusOne: args.plusOne,

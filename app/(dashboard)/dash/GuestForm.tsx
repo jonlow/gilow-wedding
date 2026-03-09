@@ -23,6 +23,7 @@ export const guestFormSchema = z.object({
   name: z.string().min(2, {
     message: "Name must be at least 2 characters.",
   }),
+  lastName: z.string().optional(),
   email: z.string().email({
     message: "Please enter a valid email address.",
   }),
@@ -49,6 +50,7 @@ interface GuestFormProps {
 export function GuestForm({
   defaultValues = {
     name: "",
+    lastName: "",
     email: "",
     slug: "",
     plusOne: "",
@@ -88,6 +90,22 @@ export function GuestForm({
                   <Input placeholder="John Doe" {...field} />
                 </FormControl>
                 <FormDescription>The full name of the guest.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="lastName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Last Name (Optional)</FormLabel>
+                <FormControl>
+                  <Input placeholder="Doe" {...field} />
+                </FormControl>
+                <FormDescription>
+                  Dashboard-only helper text for guests with the same first name.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
