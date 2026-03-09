@@ -36,5 +36,8 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 ## Project Docs
 
+- [System overview](docs/system-overview.md)
+- [Public invite and RSVP flow](docs/public-invite-and-rsvp.md)
+- [Dashboard guest management](docs/dashboard-guest-management.md)
+- [Auth and email](docs/auth-and-email.md)
 - [Guest audit logging guide](docs/guest-audit-logging.md)
-
