@@ -4,18 +4,18 @@ export type InvitationEmailProps = {
 };
 
 export function invitationEmail({ names, buttonLink }: InvitationEmailProps) {
-  const previewText = "Bel and Jon invited you to their wedding";
+  const previewText = "Bel & Jon invited you to their wedding";
   const text = [
     `Hello ${names}!`,
     "",
-    "Bel and Jon invited you to their wedding.",
+    "Bel & Jon invited you to their wedding.",
     "Open your invitation here:",
     buttonLink,
     "",
     "If you have any trouble opening the invitation, please let us know.",
     "",
     "With love,",
-    "Bel and Jon",
+    "Bel & Jon",
   ].join("\n");
 
   const html = `<!doctype html>
@@ -90,7 +90,7 @@ export function invitationEmail({ names, buttonLink }: InvitationEmailProps) {
                   <td align="center">
                     <img
                       src="https://www.belandjon.com/bel-jon-sig.png"
-                      alt="Bel and Jon signature"
+                      alt="Bel & Jon signature"
                       width="200"
                       height="47"
                       style="display:block;width:200px;height:47px;max-width:100%;border:0;outline:none;text-decoration:none;margin:0 auto;"
