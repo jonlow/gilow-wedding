@@ -553,7 +553,7 @@ export const logInvitePageViewed = mutation({
       .unique();
 
     if (!guest) {
-      throw new Error("Guest not found");
+      return { ok: false };
     }
 
     const ipAddress = args.ipAddress?.trim();

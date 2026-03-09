@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     const payload = (await request.json()) as InviteViewPayload;
     const slug = payload.slug?.trim().replace(/^\/+/, "");
     if (!slug) {
-      return NextResponse.json({ error: "Invalid slug" }, { status: 400 });
+      return NextResponse.json({ ok: true });
     }
 
     await fetchMutation(api.guests.logInvitePageViewed, {
@@ -33,8 +33,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ ok: true });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+  } catch {
+    return NextResponse.json({ ok: true });
   }
 }
