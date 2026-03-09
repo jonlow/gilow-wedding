@@ -88,6 +88,7 @@ Behavior:
 - `GET` sends a preview/test email payload
 - `POST` sends a guest-specific invite email
 - `POST` also marks the guest as invited in Convex after a successful send
+- invite emails are sent with the display name `Bel and Jon` from `howdy@belandjon.com`
 
 ## Email content
 

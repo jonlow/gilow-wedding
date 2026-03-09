@@ -4,7 +4,19 @@ export type InvitationEmailProps = {
 };
 
 export function invitationEmail({ names, buttonLink }: InvitationEmailProps) {
-  const previewText = "You're invited to our wedding!";
+  const previewText = "Bel and Jon invited you to their wedding";
+  const text = [
+    `Hello ${names}!`,
+    "",
+    "Bel and Jon invited you to their wedding.",
+    "Open your invitation here:",
+    buttonLink,
+    "",
+    "If you have any trouble opening the invitation, please let us know.",
+    "",
+    "With love,",
+    "Bel and Jon",
+  ].join("\n");
 
   const html = `<!doctype html>
 <html lang="en">
@@ -100,5 +112,5 @@ export function invitationEmail({ names, buttonLink }: InvitationEmailProps) {
   </body>
 </html>`;
 
-  return { html, previewText };
+  return { html, previewText, text };
 }

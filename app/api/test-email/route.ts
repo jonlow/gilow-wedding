@@ -6,6 +6,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 
 export const runtime = "nodejs";
+const INVITE_FROM = '"Bel and Jon" <howdy@belandjon.com>';
 
 type SendInvitePayload = {
   token: string;
@@ -25,16 +26,16 @@ function getInviteNames(name: string, plusOne?: string) {
 
 export async function GET() {
   try {
-    const { html, previewText } = invitationEmail({
+    const { html, previewText, text } = invitationEmail({
       names: "Name & Name",
       buttonLink: "https://belandjon.com",
     });
 
     const data = await sendEmail({
-      from: "howdy@belandjon.com",
+      from: INVITE_FROM,
       to: "jon@avenue.studio",
-      subject: "💛 We're so excited to invite you to our wedding. 💛",
-      text: previewText,
+      subject: "Bel and Jon invited you to their wedding",
+      text,
       html,
     });
 
@@ -55,16 +56,16 @@ export async function POST(request: Request) {
       payload.buttonLink?.trim() ||
       `${new URL(request.url).origin}/${normalizedSlug}`;
 
-    const { html, previewText } = invitationEmail({
+    const { html, previewText, text } = invitationEmail({
       names,
       buttonLink,
     });
 
     const emailResult = await sendEmail({
-      from: "howdy@belandjon.com",
+      from: INVITE_FROM,
       to: payload.email,
-      subject: "💛 We're so excited to invite you to our wedding. 💛",
-      text: previewText,
+      subject: "Bel and Jon invited you to their wedding",
+      text,
       html,
     });
 
