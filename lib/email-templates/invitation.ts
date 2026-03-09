@@ -3,7 +3,18 @@ export type InvitationEmailProps = {
   buttonLink: string;
 };
 
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
 export function invitationEmail({ names, buttonLink }: InvitationEmailProps) {
+  const safeNames = escapeHtml(names);
+  const safeButtonLink = escapeHtml(buttonLink);
   const previewText = "Bel & Jon invited you to their wedding";
   const text = [
     `Hello ${names}!`,
@@ -50,7 +61,7 @@ export function invitationEmail({ names, buttonLink }: InvitationEmailProps) {
           <tr>
            <td class="mobile-padding" style="padding:32px 32px 8px;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;text-align:center;">
                 <p class="mobile-text" style="margin:0 0 20px;font-size:16px;line-height:1.6;">
-                  Hello ${names}!
+                  Hello ${safeNames}!
                 </p>
               <p class="mobile-text" style="margin:0 0 20px;font-size:16px;line-height:1.6;">                  
                 💛 We're so excited to invite you to our wedding. 💛
@@ -64,11 +75,11 @@ export function invitationEmail({ names, buttonLink }: InvitationEmailProps) {
           <tr>
             <td align="center" style="padding:0 32px 30px;">
               <!--[if mso]>
-                <v:rect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${buttonLink}" style="height:50px;v-text-anchor:middle;width:170px;" stroke="f" fillcolor="#f8af63">
+                <v:rect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${safeButtonLink}" style="height:50px;v-text-anchor:middle;width:170px;" stroke="f" fillcolor="#f8af63">
                   <w:anchorlock/>
                   <center>
                 <![endif]-->
-                    <a href="${buttonLink}"
+                    <a href="${safeButtonLink}"
               style="background-color:#f8af63;color:#000000;display:inline-block;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:16px;font-weight:bold;line-height:50px;text-align:center;text-decoration:none;width:170px;-webkit-text-size-adjust:none;max-width:90%;">View Invitation</a>
                 <!--[if mso]>
                   </center>
@@ -80,7 +91,8 @@ export function invitationEmail({ names, buttonLink }: InvitationEmailProps) {
           <tr>
             <td class="mobile-padding" style="padding:0 32px 32px;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;text-align:center;">
               <p class="mobile-text" style="margin:0 0 20px;font-size:16px;line-height:1.6;">
-                If you have any trouble opening the invitation, please don't hesitate to let us know.
+                If you have any trouble opening the invitation, please
+                <a href="${safeButtonLink}" style="color:#000000;text-decoration:underline;">use this link</a>.
               </p>
               <p class="mobile-text" style="margin:0 0 20px;font-size:16px;line-height:1.6;">
                 With love,
