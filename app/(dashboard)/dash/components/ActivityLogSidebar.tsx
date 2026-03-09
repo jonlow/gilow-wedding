@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Tooltip,
   TooltipContent,
@@ -33,7 +34,6 @@ interface ActivityLogSidebarProps {
 export function ActivityLogSidebar({
   auditEvents,
 }: ActivityLogSidebarProps) {
-
   return (
     <Card className="h-fit lg:sticky lg:top-8">
       <CardHeader>
@@ -47,7 +47,15 @@ export function ActivityLogSidebar({
         <TooltipProvider>
           <div className="max-h-[70vh] space-y-3 overflow-y-auto pr-2">
             {auditEvents === undefined ? (
-              <p className="text-muted-foreground text-sm">Loading activity…</p>
+              Array.from({ length: 8 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="bg-muted/40 rounded-md border px-3 py-2"
+                >
+                  <Skeleton className="mb-2 h-4 w-3/5" />
+                  <Skeleton className="h-4 w-4/5" />
+                </div>
+              ))
             ) : auditEvents.length === 0 ? (
               <p className="text-muted-foreground text-sm">No activity yet.</p>
             ) : (
@@ -61,22 +69,28 @@ export function ActivityLogSidebar({
                       <p className="text-muted-foreground line-clamp-2 text-sm">
                         {event.eventLabel}
                       </p>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="left">
-                  <div className="space-y-1">
-                    <p>{event.ipAddress ? `IP: ${event.ipAddress}` : "IP unavailable"}</p>
-                    <p>{event.city ? `City: ${event.city}` : "City unavailable"}</p>
-                    <p>
-                      {event.country
-                        ? `Country: ${getCountryFlag(event.country)} ${event.country}`
-                        : "Country unavailable"}
-                    </p>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            ))
-          )}
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="left">
+                    <div className="space-y-1">
+                      <p>
+                        {event.ipAddress
+                          ? `IP: ${event.ipAddress}`
+                          : "IP unavailable"}
+                      </p>
+                      <p>
+                        {event.city ? `City: ${event.city}` : "City unavailable"}
+                      </p>
+                      <p>
+                        {event.country
+                          ? `Country: ${getCountryFlag(event.country)} ${event.country}`
+                          : "Country unavailable"}
+                      </p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              ))
+            )}
           </div>
         </TooltipProvider>
       </CardContent>
