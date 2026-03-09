@@ -31,9 +31,7 @@ interface ActivityLogSidebarProps {
   auditEvents: AuditEvent[] | undefined;
 }
 
-export function ActivityLogSidebar({
-  auditEvents,
-}: ActivityLogSidebarProps) {
+export function ActivityLogSidebar({ auditEvents }: ActivityLogSidebarProps) {
   return (
     <Card className="h-fit lg:sticky lg:top-8">
       <CardHeader>
@@ -41,7 +39,6 @@ export function ActivityLogSidebar({
           <ScrollText className="h-4 w-4" aria-hidden="true" />
           <CardTitle>Activity Log</CardTitle>
         </div>
-        <CardDescription>Latest 200 audit events across all guests.</CardDescription>
       </CardHeader>
       <CardContent>
         <TooltipProvider>
@@ -79,7 +76,9 @@ export function ActivityLogSidebar({
                           : "IP unavailable"}
                       </p>
                       <p>
-                        {event.city ? `City: ${event.city}` : "City unavailable"}
+                        {event.city
+                          ? `City: ${event.city}`
+                          : "City unavailable"}
                       </p>
                       <p>
                         {event.country
