@@ -44,8 +44,8 @@ export function RsvpForm({ guestSlug }: RsvpFormProps) {
         RSVP here by checking a box then pressing &quot;SUBMIT&quot;
       </p>
 
-      <div className="mb-16 flex items-center justify-center gap-16 md:gap-24">
-        <label className="group flex cursor-pointer items-center gap-6">
+      <div className="mb-16 flex items-center justify-center gap-8 md:gap-24">
+        <label className="group flex w-[132px] cursor-pointer items-center justify-center gap-4 md:w-[220px] md:gap-6">
           <span className="relative">
             <input
               type="radio"
@@ -62,7 +62,7 @@ export function RsvpForm({ guestSlug }: RsvpFormProps) {
           </span>
         </label>
 
-        <label className="group flex cursor-pointer items-center gap-6">
+        <label className="group flex w-[132px] cursor-pointer items-center justify-center gap-4 md:w-[220px] md:gap-6">
           <span className="relative">
             <input
               type="radio"
@@ -73,13 +73,13 @@ export function RsvpForm({ guestSlug }: RsvpFormProps) {
             />
             <span className="checkbox-custom peer-focus-visible:ring-2 peer-focus-visible:ring-black peer-focus-visible:ring-offset-2" />
           </span>
-          <span className="flex items-center gap-2">
+          <span className="relative flex items-center">
             <span className="heading-2 relative text-3xl leading-none md:top-[-6px] md:text-7xl">
               NO
             </span>
             <span
               aria-hidden="true"
-              className="pointer-events-none relative -top-[2px] inline-flex w-8 items-center justify-center text-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100 md:w-12 md:text-4xl"
+              className="pointer-events-none absolute left-full top-1/2 ml-2 inline-flex -translate-y-1/2 items-center justify-center text-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100 md:ml-3 md:text-4xl"
             >
               😢
             </span>

@@ -28,7 +28,7 @@ export function WeddingPageContent({
         {/* Content container */}
         <div className="relative">
           {/* Text content - constrained to red column */}
-          <div className="relative mx-auto max-w-300 px-4 pt-18 text-center md:px-12">
+          <div className="relative mx-auto max-w-300 px-8 pt-18 text-center md:px-12">
             <p className="font-bold text-black">
               Hi {guestName}
               {plusOneDisplayName ? ` & ${plusOneDisplayName}` : ""}
@@ -68,10 +68,10 @@ export function WeddingPageContent({
 
       {/* Content below the hero */}
       <div className="mx-auto max-w-300 px-8 py-10 text-center">
-        <p>We&apos;d love you to be there</p>
+        <p>We&apos;d love you to be there.</p>
       </div>
 
-      <div className="prose-narrow bg-yellow relative mx-auto mb-12.5 max-w-300 px-4 pt-18 pb-12 text-center md:mb-17.5 md:px-12 md:pb-12">
+      <div className="prose-narrow bg-yellow relative mx-auto mb-12.5 max-w-300 px-8 pt-18 pb-12 text-center md:mb-17.5 md:px-12 md:pb-12">
         <Image
           src="/APNG/cloud1.png"
           alt="Cloud"
@@ -92,9 +92,9 @@ export function WeddingPageContent({
         </p>
         <p>Dress comfortably the celebration will be mostly outdoors. </p>
         <p>
-          No gifts! As part of the ceremony you will be invited to offer a
-          blessing. Some may choose to include a small monetary gift as part of
-          this tradition.
+          No gifts please! As part of the ceremony you will be invited to offer
+          a blessing. Some may choose to include a small monetary gift as part
+          of this tradition.
         </p>
 
         <Image
@@ -108,7 +108,7 @@ export function WeddingPageContent({
         />
       </div>
 
-      <div className="prose-narrow bg-blue relative mx-auto mb-12.5 max-w-300 px-4 pt-18 pb-12 text-center md:mb-17.5 md:px-12 md:pb-12">
+      <div className="prose-narrow bg-blue relative mx-auto mb-12.5 max-w-300 px-8 pt-18 pb-12 text-center md:mb-17.5 md:px-12 md:pb-12">
         <p className="heading-3">IT STARTS AT 11AM UNTIL LATE</p>
 
         <p>4 Archer Place Mill Park 3082 VIC</p>
@@ -128,13 +128,13 @@ export function WeddingPageContent({
         />
       </div>
 
-      <div className="prose-narrow bg-green relative mx-auto max-w-300 px-4 pt-18 pb-15 text-center text-black md:px-12 md:pb-17">
+      <div className="prose-narrow bg-green relative mx-auto max-w-300 px-8 pt-18 pb-15 text-center text-black md:px-12 md:pb-17">
         <p>Please let us know you can make it by</p>
         <p className="heading-3">20.05.26</p>
       </div>
 
       {/* RSVP Section */}
-      <div className="prose-narrow relative mx-auto max-w-300 px-4 pt-18 text-center text-black md:px-12">
+      <div className="prose-narrow relative mx-auto max-w-300 px-8 pt-18 text-center text-black md:px-12">
         <RsvpForm guestSlug={guestSlug} />
         <Image
           src="/APNG/cheers.png"

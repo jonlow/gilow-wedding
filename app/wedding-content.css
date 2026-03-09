@@ -14,7 +14,7 @@
   p {
     font-size: 25px;
     margin-bottom: 24px;
-    line-height: 1.05;
+    line-height: 1.15;
 
     &:last-child {
       margin-bottom: 0 !important;
