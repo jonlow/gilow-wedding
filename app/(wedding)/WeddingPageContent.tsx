@@ -59,7 +59,7 @@ export function WeddingPageContent({
               alt="Wedding celebration illustration"
               width={1920}
               height={448}
-              className="w-full min-w-[1286px] object-contain md:min-w-[1920px]"
+              className="w-full min-w-[1576px] object-contain md:min-w-[1920px]"
               preload={true}
             />
           </div>
