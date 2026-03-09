@@ -1,21 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { usePreloadedQuery } from "convex/react";
 import type { Preloaded } from "convex/react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { logout, type AuthUser } from "./auth-actions";
 import { api } from "@/convex/_generated/api";
 import { AuthProvider } from "./hooks/useAuthToken";
-import { UserInfoCard, GuestTable } from "./components";
+import { ActivityLogSidebar, UserInfoCard, GuestTable } from "./components";
 
 interface DashboardProps {
   user: AuthUser;
@@ -42,13 +35,8 @@ function DashboardContent({ user, preloadedGuests }: DashboardContentProps) {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [cachedGuests, setCachedGuests] = useState(guests);
 
-  useEffect(() => {
-    if (!isLoggingOut) {
-      setCachedGuests(guests);
-    }
-  }, [guests, isLoggingOut]);
-
   const handleLogout = async () => {
+    setCachedGuests(guests);
     setIsLoggingOut(true);
     await logout();
     router.refresh();
@@ -67,10 +55,13 @@ function DashboardContent({ user, preloadedGuests }: DashboardContentProps) {
         </Button>
       </div>
 
-      <div className="grid gap-6">
-        <UserInfoCard user={user} />
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
+        <div className="grid gap-6">
+          <UserInfoCard user={user} />
+          <GuestTable guests={isLoggingOut ? cachedGuests : guests} />
+        </div>
 
-        <GuestTable guests={isLoggingOut ? cachedGuests : guests} />
+        <ActivityLogSidebar />
       </div>
     </div>
   );

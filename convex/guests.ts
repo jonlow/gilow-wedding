@@ -426,6 +426,53 @@ export const listGuestAuditEvents = query({
   },
 });
 
+export const listLatestGuestAuditEvents = query({
+  args: {
+    token: v.string(),
+  },
+  returns: v.array(
+    v.object({
+      _id: v.id("guestAuditEvents"),
+      guestId: v.id("guests"),
+      guestName: v.string(),
+      eventLabel: v.string(),
+      eventAt: v.number(),
+      ipAddress: v.optional(v.string()),
+    }),
+  ),
+  handler: async (ctx, args) => {
+    await requireAuth(ctx, args.token);
+
+    const events = await ctx.db
+      .query("guestAuditEvents")
+      .withIndex("by_eventAt")
+      .order("desc")
+      .collect();
+
+    const latestEvents = events.slice(0, 200);
+
+    return Promise.all(
+      latestEvents.map(async (event) => {
+        const guest = await ctx.db.get(event.guestId);
+        const guestName = guest
+          ? guest.lastName?.trim()
+            ? `${guest.name} ${guest.lastName.trim()}`
+            : guest.name
+          : "Unknown guest";
+
+        return {
+          _id: event._id,
+          guestId: event.guestId,
+          guestName,
+          eventLabel: event.eventLabel,
+          eventAt: event.eventAt,
+          ipAddress: event.ipAddress,
+        };
+      }),
+    );
+  },
+});
+
 export const addGuestAuditEvent = mutation({
   args: {
     token: v.string(),

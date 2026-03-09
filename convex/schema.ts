@@ -23,7 +23,8 @@ export default defineSchema({
     ipAddress: v.optional(v.string()),
   })
     .index("by_guestId", ["guestId"])
-    .index("by_guestId_eventAt", ["guestId", "eventAt"]),
+    .index("by_guestId_eventAt", ["guestId", "eventAt"])
+    .index("by_eventAt", ["eventAt"]),
 
   // Dashboard users for authentication
   dashUsers: defineTable({
