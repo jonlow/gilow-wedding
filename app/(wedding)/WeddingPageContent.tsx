@@ -109,7 +109,7 @@ export function WeddingPageContent({
       </div>
 
       <div className="prose-narrow bg-blue relative mx-auto mb-12.5 max-w-300 px-4 pt-18 pb-12 text-center md:mb-17.5 md:px-12 md:pb-12">
-        <p className="heading-3">IT STARTS AT 12PM UNTIL LATE</p>
+        <p className="heading-3">IT STARTS AT 11AM UNTIL LATE</p>
 
         <p>4 Archer Place Mill Park 3082 VIC</p>
         <p>
