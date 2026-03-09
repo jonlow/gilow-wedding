@@ -1,7 +1,14 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { MoreHorizontal, Mail, Copy, Check, Plus, ScrollText } from "lucide-react";
+import {
+  MoreHorizontal,
+  Mail,
+  Copy,
+  Check,
+  Plus,
+  ScrollText,
+} from "lucide-react";
 import dynamic from "next/dynamic";
 import { useMutation } from "convex/react";
 import { toast } from "sonner";
@@ -321,7 +328,9 @@ export function GuestTable({ guests }: GuestTableProps) {
                   <TableRow
                     key={guest._id}
                     data-state={
-                      selectedGuests.includes(guest._id) ? "selected" : undefined
+                      selectedGuests.includes(guest._id)
+                        ? "selected"
+                        : undefined
                     }
                   >
                     <TableCell>
@@ -338,7 +347,7 @@ export function GuestTable({ guests }: GuestTableProps) {
                         ? "Yes"
                         : guest.attending === false
                           ? "No"
-                          : "No response"}
+                          : "Pending"}
                     </TableCell>
                     <TableCell>{guest.inviteSent ? "Yes" : "No"}</TableCell>
                     <TableCell>{guest.plusOne?.trim() || "—"}</TableCell>
@@ -423,7 +432,11 @@ export function GuestTable({ guests }: GuestTableProps) {
                           </DropdownMenuContent>
                         </DropdownMenu>
                       ) : (
-                        <Button variant="ghost" className="h-8 w-8 p-0" disabled>
+                        <Button
+                          variant="ghost"
+                          className="h-8 w-8 p-0"
+                          disabled
+                        >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       )}
