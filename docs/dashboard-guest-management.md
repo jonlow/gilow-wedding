@@ -79,11 +79,11 @@ Files involved:
 
 CSV rules enforced by the UI:
 
-- required columns are exactly:
+- required columns are exactly, in this order:
   - `name`
+  - `plus one`
   - `slug`
   - `email`
-  - `plus one`
 - extra columns are rejected
 - required values must be present per row
 - email is normalized to lowercase

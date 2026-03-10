@@ -17,7 +17,7 @@ type ParsedGuest = {
   plusOne?: string;
 };
 
-const REQUIRED_COLUMNS = ["name", "slug", "email", "plus one"] as const;
+const REQUIRED_COLUMNS = ["name", "plus one", "slug", "email"] as const;
 
 function parseCsvLine(line: string): string[] {
   const result: string[] = [];
@@ -67,16 +67,13 @@ function parseGuestCsv(text: string) {
     column.trim().toLowerCase(),
   );
 
-  const missing = REQUIRED_COLUMNS.filter((column) => !headerRow.includes(column));
-  if (missing.length > 0) {
-    throw new Error(`Missing required column(s): ${missing.join(", ")}.`);
-  }
+  const hasExactHeaderOrder =
+    headerRow.length === REQUIRED_COLUMNS.length &&
+    REQUIRED_COLUMNS.every((column, index) => headerRow[index] === column);
 
-  const allowedColumns = new Set(REQUIRED_COLUMNS);
-  const disallowedColumns = headerRow.filter((column) => !allowedColumns.has(column as (typeof REQUIRED_COLUMNS)[number]));
-  if (disallowedColumns.length > 0) {
+  if (!hasExactHeaderOrder) {
     throw new Error(
-      `Only these columns are allowed: ${REQUIRED_COLUMNS.join(", ")}. Found disallowed column(s): ${disallowedColumns.join(", ")}.`,
+      `CSV columns must be exactly in this order: ${REQUIRED_COLUMNS.join(", ")}.`,
     );
   }
 
@@ -253,7 +250,7 @@ export function BulkGuestImport() {
       <CardHeader>
         <CardTitle>Bulk Import Guests</CardTitle>
         <CardDescription>
-          Upload a CSV with exactly these columns: name, slug, email, plus one.
+          Upload a CSV with exactly these columns in this order: name, plus one, slug, email.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
