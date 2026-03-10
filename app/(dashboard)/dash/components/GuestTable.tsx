@@ -209,13 +209,12 @@ export function GuestTable({ guests }: GuestTableProps) {
       const normalizedSlug = guest.slug.replace(/^\/+/, "");
       const buttonLink = `${window.location.origin}/${normalizedSlug}`;
 
-      const response = await fetch("/api/test-email", {
+      const response = await fetch("/api/send-email", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          token,
           guestId: guest._id,
           name: guest.name,
           email: guest.email,

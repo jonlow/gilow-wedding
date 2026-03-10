@@ -79,7 +79,7 @@ For Mailpit:
 
 Main file:
 
-- `app/api/test-email/route.ts`
+- `app/api/send-email/route.ts`
 
 Despite the route name, this is the live dashboard invite-sending endpoint.
 

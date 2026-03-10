@@ -52,6 +52,8 @@ Flow:
 4. It calls `api.guests.submitGuestRsvp`.
 5. Convex updates `guests.attending`.
 6. Convex appends an audit event labeled `RSVP submitted`.
+7. The server action expires the cached guest page data and revalidates the
+   guest route so the next load reflects the saved RSVP immediately.
 
 ## RSVP states
 
@@ -60,6 +62,13 @@ In the dashboard, RSVP is interpreted as:
 - `attending === true` -> `Yes`
 - `attending === false` -> `No`
 - `attending === undefined` -> `Pending`
+
+On the public invite page:
+
+- `attending !== undefined` -> render the thank-you submitted state on load
+- `attending === undefined` -> render the RSVP form
+- when reopening the form from the thank-you state, the saved RSVP choice is
+  preselected
 
 ## Guest page content
 
@@ -75,8 +84,20 @@ The content lives primarily in `app/(wedding)/WeddingPageContent.tsx` and `app/w
 ## Caching
 
 - `app/(wedding)/[guestSlug]/page.tsx` sets `revalidate = 600`.
-- Guest lookup is also wrapped in `unstable_cache`.
+- Guest lookup is also wrapped in `unstable_cache` and tagged per guest page.
 - Changes to guest name/plus-one/slug may take up to 10 minutes to naturally refresh on the public page unless the cache is otherwise invalidated.
+- RSVP submission explicitly invalidates the cached guest page so a reload sees
+  the saved RSVP right away.
+
+## Public RSVP UX
+
+- Guests with an existing RSVP load directly into the thank-you state.
+- Submitting the form switches to the thank-you state immediately before the
+  server responds.
+- If the save fails, the UI returns to the form, keeps the selected response,
+  and shows an inline error.
+- The thank-you state includes a smaller "Click here to change your RSVP"
+  control that reopens the form with the saved response selected.
 
 ## Local development behavior
 

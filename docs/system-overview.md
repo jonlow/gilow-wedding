@@ -49,7 +49,7 @@ Defined in `convex/schema.ts`:
   - `app/(dashboard)/dash/components/GuestTable.tsx`
   - `convex/guests.ts`
 - Email sending
-  - `app/api/test-email/route.ts`
+  - `app/api/send-email/route.ts`
   - `lib/email.ts`
   - `lib/email-templates/invitation.ts`
 
@@ -62,6 +62,6 @@ Defined in `convex/schema.ts`:
 ## Operational notes
 
 - The public invite-view logger rejects normal browser GET requests and only accepts `POST /api/invite-view` with `X-Requested-With: XMLHttpRequest`.
-- Invite emails are sent through `/api/test-email`; despite the route name, this is the current invite-sending path used by the dashboard.
+- Invite emails are sent through `/api/send-email`, which validates the dashboard session cookie before sending.
 - Local development IPs are intentionally labeled as local development rather than shown as `::1`.
 - There is a testing-only Convex utility `resetGuestStateForTesting` in `convex/guests.ts` that clears guest RSVP state, invite-sent state, and audit events in the dev deployment.

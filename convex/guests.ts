@@ -279,7 +279,6 @@ export const updateGuest = mutation({
   },
 });
 
-
 export const bulkImportGuests = mutation({
   args: {
     token: v.string(),
@@ -448,6 +447,35 @@ export const listGuestAuditEvents = query({
       .collect();
 
     return events;
+  },
+});
+
+export const clearGuestAuditEvents = mutation({
+  args: {
+    token: v.string(),
+    guestId: v.id("guests"),
+  },
+  returns: v.object({
+    deletedCount: v.number(),
+  }),
+  handler: async (ctx, args) => {
+    await requireAuth(ctx, args.token);
+
+    const guest = await ctx.db.get(args.guestId);
+    if (!guest) {
+      throw new Error("Guest not found");
+    }
+
+    const auditEvents = await ctx.db
+      .query("guestAuditEvents")
+      .withIndex("by_guestId_eventAt", (q) => q.eq("guestId", args.guestId))
+      .collect();
+
+    await Promise.all(auditEvents.map((event) => ctx.db.delete(event._id)));
+
+    return {
+      deletedCount: auditEvents.length,
+    };
   },
 });
 

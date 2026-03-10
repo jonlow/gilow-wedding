@@ -2,16 +2,22 @@ import Image from "next/image";
 import { RsvpForm } from "./rsvp-form";
 import { InvitePageViewTracker } from "./InvitePageViewTracker";
 
+type RsvpResponse = "yes" | "no";
+
 type WeddingPageContentProps = {
   guestName: string;
   guestSlug: string;
   plusOneName?: string;
+  hasSubmittedRsvp: boolean;
+  initialResponse: RsvpResponse | null;
 };
 
 export function WeddingPageContent({
   guestName,
   guestSlug,
   plusOneName,
+  hasSubmittedRsvp,
+  initialResponse,
 }: WeddingPageContentProps) {
   const plusOneDisplayName = plusOneName?.trim();
 
@@ -135,7 +141,11 @@ export function WeddingPageContent({
 
       {/* RSVP Section */}
       <div className="prose-narrow relative mx-auto max-w-300 px-8 pt-18 text-center text-black md:px-12">
-        <RsvpForm guestSlug={guestSlug} />
+        <RsvpForm
+          guestSlug={guestSlug}
+          initialSubmitted={hasSubmittedRsvp}
+          initialResponse={initialResponse}
+        />
         <Image
           src="/APNG/cheers.png"
           alt="Cheers celebration illustration"

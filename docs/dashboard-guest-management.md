@@ -54,13 +54,13 @@ Files involved:
 
 - `app/(dashboard)/dash/components/GuestTable.tsx`
 - `app/(dashboard)/dash/components/ResendInviteDialog.tsx`
-- `app/api/test-email/route.ts`
+- `app/api/send-email/route.ts`
 - `convex/guests.ts` -> `markInviteSent`
 
 Flow:
 
 1. A dashboard user clicks `Send invite`.
-2. The dashboard posts guest data and auth token to `/api/test-email`.
+2. The dashboard posts guest data to `/api/send-email`.
 3. The API route sends the email.
 4. If email sending succeeds, the route calls `markInviteSent`.
 5. Convex patches `inviteSent: true` and logs `Invite sent`.

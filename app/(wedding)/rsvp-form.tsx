@@ -1,44 +1,74 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
+import { useState, useTransition } from "react";
 import { submitRsvp } from "./actions";
+
+type RsvpResponse = "yes" | "no";
 
 interface RsvpFormProps {
   guestSlug: string;
+  initialSubmitted: boolean;
+  initialResponse: RsvpResponse | null;
 }
 
-export function RsvpForm({ guestSlug }: RsvpFormProps) {
+export function RsvpForm({
+  guestSlug,
+  initialSubmitted,
+  initialResponse,
+}: RsvpFormProps) {
   const [isPending, startTransition] = useTransition();
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(initialSubmitted);
+  const [selectedResponse, setSelectedResponse] = useState<RsvpResponse>(
+    initialResponse ?? "yes",
+  );
   const [error, setError] = useState<string | null>(null);
-  const formRef = useRef<HTMLFormElement>(null);
 
   if (isSubmitted) {
     return (
       <div className="pb-16 text-center">
         <p className="heading-3">Thank you!</p>
         <p>Your RSVP has been submitted.</p>
+        <p className="mt-4 text-xs">
+          <button
+            type="button"
+            onClick={() => {
+              setError(null);
+              setIsSubmitted(false);
+            }}
+            disabled={isPending}
+            className="cursor-pointer underline transition-opacity hover:opacity-70 focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Click here
+          </button>
+          {" "}to change your RSVP
+        </p>
       </div>
     );
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const formData = new FormData(formRef.current!);
+    const submittedResponse = selectedResponse;
+    const formData = new FormData();
+    formData.set("guestSlug", guestSlug);
+    formData.set("response", submittedResponse);
     setError(null);
+    setIsSubmitted(true);
     startTransition(async () => {
       try {
         await submitRsvp(formData);
-        setIsSubmitted(true);
+        setSelectedResponse(submittedResponse);
       } catch (submitError) {
         console.error("Failed to submit RSVP:", submitError);
+        setIsSubmitted(false);
+        setSelectedResponse(submittedResponse);
         setError("Could not submit RSVP. Please try again.");
       }
     });
   };
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit}>
       <input type="hidden" name="guestSlug" value={guestSlug} />
       <p className="mb-16">
         RSVP here by checking a box then pressing &quot;SUBMIT&quot;
@@ -51,7 +81,8 @@ export function RsvpForm({ guestSlug }: RsvpFormProps) {
               type="radio"
               name="response"
               value="yes"
-              defaultChecked
+              checked={selectedResponse === "yes"}
+              onChange={() => setSelectedResponse("yes")}
               tabIndex={0}
               className="peer absolute inset-0 h-full w-full cursor-pointer opacity-0"
             />
@@ -68,6 +99,8 @@ export function RsvpForm({ guestSlug }: RsvpFormProps) {
               type="radio"
               name="response"
               value="no"
+              checked={selectedResponse === "no"}
+              onChange={() => setSelectedResponse("no")}
               tabIndex={0}
               className="peer absolute inset-0 h-full w-full cursor-pointer opacity-0"
             />

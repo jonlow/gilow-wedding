@@ -15,7 +15,10 @@ const getGuestBySlug = (guestSlug: string) =>
       return client.query(api.guests.getGuestBySlug, { slug: guestSlug });
     },
     ["guest-by-slug", guestSlug],
-    { revalidate: 600 },
+    {
+      revalidate: 600,
+      tags: [`guest-page:${guestSlug}`],
+    },
   )();
 
 export const revalidate = 600;
@@ -34,11 +37,17 @@ export default async function GuestPage({ params }: GuestPageProps) {
     notFound();
   }
 
+  const hasSubmittedRsvp = guest.attending !== undefined;
+  const initialResponse =
+    guest.attending === true ? "yes" : guest.attending === false ? "no" : null;
+
   return (
     <WeddingPageContent
       guestName={guest.name}
       guestSlug={guest.slug}
       plusOneName={guest.plusOne}
+      hasSubmittedRsvp={hasSubmittedRsvp}
+      initialResponse={initialResponse}
     />
   );
 }

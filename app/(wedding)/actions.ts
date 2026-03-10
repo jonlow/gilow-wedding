@@ -1,6 +1,7 @@
 "use server";
 
 import { ConvexHttpClient } from "convex/browser";
+import { revalidatePath, updateTag } from "next/cache";
 import { headers } from "next/headers";
 import { api } from "@/convex/_generated/api";
 import { getRequestIpAddress, getRequestLocation } from "@/lib/request-ip";
@@ -32,6 +33,11 @@ export async function submitRsvp(formData: FormData) {
     ipAddress,
     ...location,
   });
+
+  if (result.ok) {
+    updateTag(`guest-page:${guestSlug}`);
+    revalidatePath(`/${guestSlug}`);
+  }
 
   return { success: result.ok, attending: result.attending };
 }
