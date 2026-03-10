@@ -49,6 +49,7 @@ export function AddGuestSheetContent({ onClose }: AddGuestSheetContentProps) {
   async function onSubmit(values: GuestFormValues) {
     try {
       const plusOne = values.plusOne?.trim() || undefined;
+      const kids = values.kids?.trim() || undefined;
       const lastName = values.lastName?.trim() || undefined;
       const result = await addGuest({
         token,
@@ -57,6 +58,7 @@ export function AddGuestSheetContent({ onClose }: AddGuestSheetContentProps) {
         email: values.email,
         slug: values.slug,
         plusOne,
+        kids,
         attending: toAttendingValue(values.attending),
         inviteSent: values.inviteSent,
         force: false,
@@ -86,6 +88,7 @@ export function AddGuestSheetContent({ onClose }: AddGuestSheetContentProps) {
     try {
       setIsForceSubmitting(true);
       const plusOne = pendingValues.plusOne?.trim() || undefined;
+      const kids = pendingValues.kids?.trim() || undefined;
       const lastName = pendingValues.lastName?.trim() || undefined;
       const result = await addGuest({
         token,
@@ -94,6 +97,7 @@ export function AddGuestSheetContent({ onClose }: AddGuestSheetContentProps) {
         email: pendingValues.email,
         slug: pendingValues.slug,
         plusOne,
+        kids,
         attending: toAttendingValue(pendingValues.attending),
         inviteSent: pendingValues.inviteSent,
         force: true,

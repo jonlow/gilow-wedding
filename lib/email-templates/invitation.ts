@@ -17,7 +17,7 @@ export function invitationEmail({ names, buttonLink }: InvitationEmailProps) {
   const safeButtonLink = escapeHtml(buttonLink);
   const previewText = "We'd love for you to be there!";
   const text = [
-    `Hello ${names}!`,
+    `Hi ${names}!`,
     "",
     "💛 We're so excited to invite you to our wedding. 💛",
     "Please click the link below to view your invitation.",
@@ -62,7 +62,7 @@ export function invitationEmail({ names, buttonLink }: InvitationEmailProps) {
           <tr>
            <td class="mobile-padding" style="padding:32px 32px 8px;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;text-align:center;">
                 <p class="mobile-text" style="margin:0 0 20px;font-size:16px;line-height:1.6;">
-                  Hello ${safeNames}!
+                  Hi ${safeNames}!
                 </p>
               <p class="mobile-text" style="margin:0 0 20px;font-size:16px;line-height:1.6;">                  
                 💛 We're so excited to invite you to our wedding. 💛

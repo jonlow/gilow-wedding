@@ -4,6 +4,7 @@ import { sendEmail } from "@/lib/email";
 import { invitationEmail } from "@/lib/email-templates/invitation";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import { formatGuestGreetingNames } from "@/lib/guest-display";
 import { getRequestIpAddress, getRequestLocation } from "@/lib/request-ip";
 
 export const runtime = "nodejs";
@@ -17,14 +18,9 @@ type SendInvitePayload = {
   email: string;
   slug: string;
   plusOne?: string;
+  kids?: string;
   buttonLink?: string;
 };
-
-function getInviteNames(name: string, plusOne?: string) {
-  const primaryName = name.trim();
-  const plusOneName = plusOne?.trim();
-  return plusOneName ? `${primaryName} & ${plusOneName}` : primaryName;
-}
 
 async function requireDashSession(request: Request) {
   const cookieHeader = request.headers.get("cookie");
@@ -65,8 +61,7 @@ export async function POST(request: Request) {
     }
 
     const payload = (await request.json()) as SendInvitePayload;
-    const plusOne = payload.plusOne?.trim();
-    const names = getInviteNames(payload.name, plusOne);
+    const names = formatGuestGreetingNames(payload);
     const normalizedSlug = payload.slug.replace(/^\/+/, "");
     const buttonLink =
       payload.buttonLink?.trim() ||

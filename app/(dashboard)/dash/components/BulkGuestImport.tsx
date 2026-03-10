@@ -15,9 +15,10 @@ type ParsedGuest = {
   slug: string;
   email: string;
   plusOne?: string;
+  kids?: string;
 };
 
-const REQUIRED_COLUMNS = ["name", "plus one", "slug", "email"] as const;
+const REQUIRED_COLUMNS = ["name", "plus one", "kids", "slug", "email"] as const;
 
 function parseCsvLine(line: string): string[] {
   const result: string[] = [];
@@ -87,6 +88,7 @@ function parseGuestCsv(text: string) {
     const slug = values[indexMap.get("slug") ?? -1]?.trim();
     const email = values[indexMap.get("email") ?? -1]?.trim().toLowerCase();
     const plusOneValue = values[indexMap.get("plus one") ?? -1]?.trim();
+    const kidsValue = values[indexMap.get("kids") ?? -1]?.trim();
 
     if (!name || !slug || !email) {
       throw new Error(`Row ${rowIndex + 2} is missing required values for name, slug, or email.`);
@@ -97,6 +99,7 @@ function parseGuestCsv(text: string) {
       slug,
       email,
       plusOne: plusOneValue || undefined,
+      kids: kidsValue || undefined,
     });
   });
 
@@ -250,7 +253,7 @@ export function BulkGuestImport() {
       <CardHeader>
         <CardTitle>Bulk Import Guests</CardTitle>
         <CardDescription>
-          Upload a CSV with exactly these columns in this order: name, plus one, slug, email.
+          Upload a CSV with exactly these columns in this order: name, plus one, kids, slug, email.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

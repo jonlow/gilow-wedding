@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { formatGuestGreetingNames } from "@/lib/guest-display";
 import { RsvpForm } from "./rsvp-form";
 import { InvitePageViewTracker } from "./InvitePageViewTracker";
 
@@ -8,6 +9,7 @@ type WeddingPageContentProps = {
   guestName: string;
   guestSlug: string;
   plusOneName?: string;
+  kidsName?: string;
   hasSubmittedRsvp: boolean;
   initialResponse: RsvpResponse | null;
 };
@@ -16,10 +18,15 @@ export function WeddingPageContent({
   guestName,
   guestSlug,
   plusOneName,
+  kidsName,
   hasSubmittedRsvp,
   initialResponse,
 }: WeddingPageContentProps) {
-  const plusOneDisplayName = plusOneName?.trim();
+  const greetingLabel = formatGuestGreetingNames({
+    name: guestName,
+    plusOne: plusOneName,
+    kids: kidsName,
+  });
 
   return (
     <div className="wedding-content min-h-screen overflow-x-hidden bg-white">
@@ -35,10 +42,7 @@ export function WeddingPageContent({
         <div className="relative">
           {/* Text content - constrained to red column */}
           <div className="relative mx-auto max-w-300 px-8 pt-18 text-center md:px-12">
-            <p className="font-bold text-black">
-              Hi {guestName}
-              {plusOneDisplayName ? ` & ${plusOneDisplayName}` : ""}
-            </p>
+            <p className="font-bold text-black">Hi {greetingLabel}</p>
             <h1 className="heading-1 mt-10 text-black uppercase">
               Bel &amp; Jon
               <br />

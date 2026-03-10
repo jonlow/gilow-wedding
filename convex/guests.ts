@@ -37,6 +37,7 @@ export const listGuests = query({
       email: v.string(),
       slug: v.string(),
       plusOne: v.optional(v.string()),
+      kids: v.optional(v.string()),
     }),
   ),
   handler: async (ctx, args) => {
@@ -64,6 +65,7 @@ export const getGuestBySlug = query({
       slug: v.string(),
       attending: v.optional(v.boolean()),
       plusOne: v.optional(v.string()),
+      kids: v.optional(v.string()),
     }),
   ),
   handler: async (ctx, args) => {
@@ -78,6 +80,7 @@ export const getGuestBySlug = query({
           slug: guest.slug,
           attending: guest.attending,
           plusOne: guest.plusOne,
+          kids: guest.kids,
         }
       : null;
   },
@@ -134,6 +137,7 @@ export const addGuest = mutation({
     email: v.string(),
     slug: v.string(),
     plusOne: v.optional(v.string()),
+    kids: v.optional(v.string()),
     attending: v.optional(v.boolean()),
     inviteSent: v.optional(v.boolean()),
     force: v.optional(v.boolean()),
@@ -185,6 +189,7 @@ export const addGuest = mutation({
       email: args.email,
       slug: args.slug,
       plusOne: args.plusOne,
+      kids: args.kids,
       attending: args.attending,
       inviteSent: args.inviteSent ?? false,
     });
@@ -208,6 +213,7 @@ export const updateGuest = mutation({
     email: v.string(),
     slug: v.string(),
     plusOne: v.optional(v.string()),
+    kids: v.optional(v.string()),
     attending: v.optional(v.boolean()),
     inviteSent: v.optional(v.boolean()),
     force: v.optional(v.boolean()),
@@ -266,6 +272,7 @@ export const updateGuest = mutation({
       email: args.email,
       slug: args.slug,
       plusOne: args.plusOne,
+      kids: args.kids,
       attending: args.attending,
       inviteSent: args.inviteSent ?? false,
     });
@@ -288,6 +295,7 @@ export const bulkImportGuests = mutation({
         slug: v.string(),
         email: v.string(),
         plusOne: v.optional(v.string()),
+        kids: v.optional(v.string()),
       }),
     ),
   },
@@ -314,6 +322,7 @@ export const bulkImportGuests = mutation({
       const slug = guest.slug.trim();
       const email = guest.email.trim().toLowerCase();
       const plusOne = guest.plusOne?.trim() || undefined;
+      const kids = guest.kids?.trim() || undefined;
 
       if (!name || !slug || !email) {
         skippedInvalidCount += 1;
@@ -351,6 +360,7 @@ export const bulkImportGuests = mutation({
         slug,
         email,
         plusOne,
+        kids,
         inviteSent: false,
       });
 

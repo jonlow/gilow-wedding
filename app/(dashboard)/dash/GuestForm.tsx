@@ -30,6 +30,7 @@ export const guestFormSchema = z.object({
     message: "Slug is required.",
   }),
   plusOne: z.string().optional(),
+  kids: z.string().optional(),
   attending: z.enum(["pending", "yes", "no"]),
   inviteSent: z.boolean(),
 });
@@ -52,6 +53,7 @@ export function GuestForm({
     email: "",
     slug: "",
     plusOne: "",
+    kids: "",
     attending: "pending",
     inviteSent: false,
   },
@@ -152,6 +154,22 @@ export function GuestForm({
                 </FormControl>
                 <FormDescription>
                   Name of the guest&apos;s plus one, if applicable.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="kids"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Kids (Optional)</FormLabel>
+                <FormControl>
+                  <Input placeholder="Murphy" {...field} />
+                </FormControl>
+                <FormDescription>
+                  Names to include in the invite greeting for this guest&apos;s kids.
                 </FormDescription>
                 <FormMessage />
               </FormItem>

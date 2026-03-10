@@ -37,6 +37,7 @@ interface EditGuestSheetProps {
     attending?: boolean;
     inviteSent: boolean;
     plusOne?: string;
+    kids?: string;
   } | null;
 }
 
@@ -74,6 +75,7 @@ export function EditGuestSheet({
   const handleSubmit = async (values: GuestFormValues) => {
     try {
       const plusOne = values.plusOne?.trim() || undefined;
+      const kids = values.kids?.trim() || undefined;
       const lastName = values.lastName?.trim() || undefined;
       const result = await updateGuest({
         token,
@@ -83,6 +85,7 @@ export function EditGuestSheet({
         email: values.email,
         slug: values.slug,
         plusOne,
+        kids,
         attending: toAttendingValue(values.attending),
         inviteSent: values.inviteSent,
         force: false,
@@ -114,6 +117,7 @@ export function EditGuestSheet({
     try {
       setIsForceSubmitting(true);
       const plusOne = pendingValues.plusOne?.trim() || undefined;
+      const kids = pendingValues.kids?.trim() || undefined;
       const lastName = pendingValues.lastName?.trim() || undefined;
       const result = await updateGuest({
         token,
@@ -123,6 +127,7 @@ export function EditGuestSheet({
         email: pendingValues.email,
         slug: pendingValues.slug,
         plusOne,
+        kids,
         attending: toAttendingValue(pendingValues.attending),
         inviteSent: pendingValues.inviteSent,
         force: true,
@@ -168,6 +173,7 @@ export function EditGuestSheet({
               email: guest.email,
               slug: guest.slug,
               plusOne: guest.plusOne ?? "",
+              kids: guest.kids ?? "",
               attending: fromAttendingValue(guest.attending),
               inviteSent: guest.inviteSent,
             }}

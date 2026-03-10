@@ -66,6 +66,7 @@ type Guest = {
   email: string;
   slug: string;
   plusOne?: string;
+  kids?: string;
 };
 
 interface GuestTableProps {
@@ -220,6 +221,7 @@ export function GuestTable({ guests }: GuestTableProps) {
           email: guest.email,
           slug: guest.slug,
           plusOne: guest.plusOne,
+          kids: guest.kids,
           buttonLink,
         }),
       });
@@ -333,6 +335,7 @@ export function GuestTable({ guests }: GuestTableProps) {
                   <TableHead>RSVP</TableHead>
                   <TableHead>Invite Sent</TableHead>
                   <TableHead>Plus One</TableHead>
+                  <TableHead>Kids</TableHead>
                   <TableHead>Slug</TableHead>
                   <TableHead className="w-12.5"></TableHead>
                 </TableRow>
@@ -369,6 +372,7 @@ export function GuestTable({ guests }: GuestTableProps) {
                       {renderPositiveState(guest.inviteSent)}
                     </TableCell>
                     <TableCell>{guest.plusOne?.trim() || "—"}</TableCell>
+                    <TableCell>{guest.kids?.trim() || "—"}</TableCell>
                     <TableCell className="font-mono text-xs">
                       <div className="flex items-center gap-1">
                         <span>{guest.slug}</span>
