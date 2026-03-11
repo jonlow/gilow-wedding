@@ -1,10 +1,4 @@
-import { internal } from "./_generated/api";
-import {
-  query,
-  mutation,
-  internalMutation,
-  internalAction,
-} from "./_generated/server";
+import { query, mutation, internalMutation } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { v } from "convex/values";
@@ -27,98 +21,6 @@ async function logGuestAuditEvent(
     country,
   });
 }
-
-function normalizeName(value?: string) {
-  const trimmed = value?.trim();
-  return trimmed ? trimmed : undefined;
-}
-
-function splitKidsNames(value?: string) {
-  if (!value) return [];
-
-  return value
-    .split("|")
-    .map((item) => normalizeName(item))
-    .filter((item): item is string => Boolean(item));
-}
-
-function formatNameList(names: string[]) {
-  if (names.length === 0) return "";
-  if (names.length === 1) return names[0];
-  if (names.length === 2) return `${names[0]} & ${names[1]}`;
-
-  return `${names.slice(0, -1).join(", ")} & ${names[names.length - 1]}`;
-}
-
-function getGuestPartyDetails(guest: {
-  name: string;
-  plusOne?: string;
-  kids?: string;
-}) {
-  const primaryName = normalizeName(guest.name) ?? guest.name.trim();
-  const plusOneName = normalizeName(guest.plusOne);
-  const kidsNames = splitKidsNames(guest.kids);
-  const trailingNames = [plusOneName, ...kidsNames].filter(
-    (value): value is string => Boolean(value),
-  );
-
-  if (trailingNames.length === 0) {
-    return { names: primaryName, partySize: 1 };
-  }
-
-  if (trailingNames.length === 1) {
-    return { names: `${primaryName} & ${trailingNames[0]}`, partySize: 2 };
-  }
-
-  return {
-    names: `${primaryName}, ${formatNameList(trailingNames)}`,
-    partySize: 1 + trailingNames.length,
-  };
-}
-
-export const sendRsvpSlackNotification = internalAction({
-  args: {
-    name: v.string(),
-    plusOne: v.optional(v.string()),
-    kids: v.optional(v.string()),
-    attending: v.boolean(),
-  },
-  returns: v.null(),
-  handler: async (_ctx, args) => {
-    const webhookUrl = process.env.RSVP_SLACK_WEBHOOK_URL;
-    if (!webhookUrl) {
-      console.error("RSVP_SLACK_WEBHOOK_URL is not set");
-      return null;
-    }
-
-    const { names, partySize } = getGuestPartyDetails({
-      name: args.name,
-      plusOne: args.plusOne,
-      kids: args.kids,
-    });
-    const verb = partySize === 1 ? "is" : "are";
-    const emoji = args.attending ? "\u{1F389}" : "\u{1F622}";
-    const outcome = args.attending
-      ? "coming to your wedding"
-      : "not coming to your wedding";
-
-    try {
-      await fetch(webhookUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          text: `${names} ${verb} ${outcome}! ${emoji}`,
-        }),
-      });
-    } catch (error) {
-      console.error("Failed to send RSVP Slack notification", error);
-    }
-
-    return null;
-  },
-});
 
 export const listGuests = query({
   args: {
@@ -231,13 +133,6 @@ export const submitGuestRsvp = mutation({
       city ? city : undefined,
       country ? country : undefined,
     );
-    await ctx.scheduler.runAfter(0, internal.guests.sendRsvpSlackNotification, {
-      name: guest.name,
-      plusOne: guest.plusOne,
-      kids: guest.kids,
-      attending,
-    });
-
     return {
       ok: true,
       attending,
