@@ -64,30 +64,11 @@ export function ActivityLogSidebar({ auditEvents }: ActivityLogSidebarProps) {
               <p className="text-sm text-stone-500">No activity yet.</p>
             ) : (
               auditEvents.map((event) => (
-                <Tooltip key={event._id}>
-                  <TooltipTrigger asChild>
-                    <ActivityLogEventCard event={event} renderedAt={renderedAt} />
-                  </TooltipTrigger>
-                  <TooltipContent side="left">
-                    <div className="space-y-1">
-                      <p>
-                        {event.ipAddress
-                          ? `IP: ${event.ipAddress}`
-                          : "IP unavailable"}
-                      </p>
-                      <p>
-                        {event.city
-                          ? `City: ${event.city}`
-                          : "City unavailable"}
-                      </p>
-                      <p>
-                        {event.country
-                          ? `Country: ${getCountryFlag(event.country)} ${event.country}`
-                          : "Country unavailable"}
-                      </p>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
+                <ActivityLogEventCard
+                  key={event._id}
+                  event={event}
+                  renderedAt={renderedAt}
+                />
               ))
             )}
           </div>
@@ -128,18 +109,36 @@ function ActivityLogEventCard({
         </Tooltip>
       </div>
       <div className="flex items-center gap-2">
-        <span
-          className={cn(
-            "inline-flex min-w-0 items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium",
-            appearance.pillClassName,
-          )}
-        >
-          <span
-            aria-hidden="true"
-            className={cn("h-1.5 w-1.5 shrink-0 rounded-full", appearance.dotClassName)}
-          />
-          <span className="truncate">{event.eventLabel}</span>
-        </span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span
+              className={cn(
+                "inline-flex min-w-0 items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium",
+                appearance.pillClassName,
+              )}
+            >
+              <span
+                aria-hidden="true"
+                className={cn(
+                  "h-1.5 w-1.5 shrink-0 rounded-full",
+                  appearance.dotClassName,
+                )}
+              />
+              <span className="truncate">{event.eventLabel}</span>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="left">
+            <div className="space-y-1">
+              <p>{event.ipAddress ? `IP: ${event.ipAddress}` : "IP unavailable"}</p>
+              <p>{event.city ? `City: ${event.city}` : "City unavailable"}</p>
+              <p>
+                {event.country
+                  ? `Country: ${getCountryFlag(event.country)} ${event.country}`
+                  : "Country unavailable"}
+              </p>
+            </div>
+          </TooltipContent>
+        </Tooltip>
       </div>
     </div>
   );

@@ -32,6 +32,7 @@ export const listGuests = query({
       _creationTime: v.number(),
       attending: v.optional(v.boolean()),
       inviteSent: v.boolean(),
+      inviteViewed: v.boolean(),
       name: v.string(),
       lastName: v.optional(v.string()),
       email: v.string(),
@@ -46,10 +47,20 @@ export const listGuests = query({
     if (!auth) {
       return [];
     }
-    const guests = await ctx.db.query("guests").collect();
+    const [guests, auditEvents] = await Promise.all([
+      ctx.db.query("guests").collect(),
+      ctx.db.query("guestAuditEvents").collect(),
+    ]);
+    const viewedGuestIds = new Set(
+      auditEvents
+        .filter((event) => event.eventLabel === "Invite page viewed")
+        .map((event) => event.guestId),
+    );
+
     return guests.map((guest) => ({
       ...guest,
       inviteSent: guest.inviteSent ?? false,
+      inviteViewed: viewedGuestIds.has(guest._id),
     }));
   },
 });

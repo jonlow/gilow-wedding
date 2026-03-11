@@ -12,6 +12,7 @@ import {
   Users,
   FileUp,
   ListFilter,
+  ChevronDown,
   X,
 } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -71,6 +72,7 @@ type Guest = {
   _creationTime: number;
   attending?: boolean;
   inviteSent: boolean;
+  inviteViewed: boolean;
   name: string;
   lastName?: string;
   email: string;
@@ -85,7 +87,12 @@ interface GuestTableProps {
 }
 
 type RsvpFilter = "all" | "pending" | "yes" | "no";
-type InviteFilter = "all" | "sent" | "unsent";
+type InviteFilter =
+  | "all"
+  | "sent"
+  | "unsent"
+  | "viewed"
+  | "notViewed";
 
 const RSVP_FILTER_LABELS: Record<RsvpFilter, string> = {
   all: "All",
@@ -98,6 +105,8 @@ const INVITE_FILTER_LABELS: Record<InviteFilter, string> = {
   all: "All",
   sent: "Invite sent",
   unsent: "Invite not sent",
+  viewed: "Invite viewed",
+  notViewed: "Invite not viewed",
 };
 
 type FilterTriggerProps = {
@@ -122,31 +131,34 @@ const FilterTrigger = forwardRef<HTMLButtonElement, FilterTriggerProps>(
         <span className="truncate">
           {activeValue ? `${label}: ${activeValue}` : label}
         </span>
-        {activeValue ? (
-          <span
-            role="button"
-            tabIndex={0}
-            aria-label={`Clear ${label.toLowerCase()} filter`}
-            className="rounded-full p-0.5 text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-900"
-            onPointerDown={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-            }}
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              onClear();
-            }}
-            onKeyDown={(event) => {
-              if (event.key !== "Enter" && event.key !== " ") return;
-              event.preventDefault();
-              event.stopPropagation();
-              onClear();
-            }}
-          >
-            <X className="h-3 w-3" />
-          </span>
-        ) : null}
+        <span className="ml-1 inline-flex items-center gap-1.5 text-stone-500">
+          {activeValue ? (
+            <span
+              role="button"
+              tabIndex={0}
+              aria-label={`Clear ${label.toLowerCase()} filter`}
+              className="rounded-full p-0.5 transition-colors hover:bg-stone-100 hover:text-stone-900"
+              onPointerDown={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+              }}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                onClear();
+              }}
+              onKeyDown={(event) => {
+                if (event.key !== "Enter" && event.key !== " ") return;
+                event.preventDefault();
+                event.stopPropagation();
+                onClear();
+              }}
+            >
+              <X className="h-3 w-3" />
+            </span>
+          ) : null}
+          <ChevronDown className="h-3.5 w-3.5" />
+        </span>
       </button>
     );
   },
@@ -178,22 +190,41 @@ function RsvpBadge({ attending }: { attending?: boolean }) {
 }
 
 function InviteBadge({ inviteSent }: { inviteSent: boolean }) {
+  if (!inviteSent) {
+    return <span className="text-stone-400">—</span>;
+  }
+
   return (
     <span
       className={cn(
         "inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium",
-        inviteSent
-          ? "border-stone-200 bg-stone-100 text-stone-700"
-          : "border-stone-200 bg-white text-stone-500",
+        "border-stone-200 bg-stone-100 text-stone-700",
       )}
     >
       <span
-        className={cn(
-          "h-1.5 w-1.5 rounded-full",
-          inviteSent ? "bg-emerald-500" : "bg-stone-300",
-        )}
+        className={cn("h-1.5 w-1.5 rounded-full", "bg-emerald-500")}
       />
-      {inviteSent ? "Sent" : "Not sent"}
+      Sent
+    </span>
+  );
+}
+
+function InviteViewedBadge({ inviteViewed }: { inviteViewed: boolean }) {
+  if (!inviteViewed) {
+    return <span className="text-stone-400">—</span>;
+  }
+
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium",
+        "border-sky-200 bg-sky-50 text-sky-700",
+      )}
+    >
+      <span
+        className={cn("h-1.5 w-1.5 rounded-full", "bg-sky-500")}
+      />
+      Viewed
     </span>
   );
 }
@@ -298,7 +329,11 @@ export function GuestTable({ guests }: GuestTableProps) {
         ? true
         : inviteFilter === "sent"
           ? guest.inviteSent
-          : !guest.inviteSent;
+          : inviteFilter === "unsent"
+            ? !guest.inviteSent
+            : inviteFilter === "viewed"
+              ? guest.inviteViewed
+              : !guest.inviteViewed;
 
     const fullName = [guest.name, guest.lastName]
       .filter((value): value is string => Boolean(value?.trim()))
@@ -474,7 +509,10 @@ export function GuestTable({ guests }: GuestTableProps) {
 
       if (filterType === "invite") {
         if (value === "all") return true;
-        return value === "sent" ? guest.inviteSent : !guest.inviteSent;
+        if (value === "sent") return guest.inviteSent;
+        if (value === "unsent") return !guest.inviteSent;
+        if (value === "viewed") return guest.inviteViewed;
+        return !guest.inviteViewed;
       }
     }).length;
 
@@ -747,6 +785,9 @@ export function GuestTable({ guests }: GuestTableProps) {
                         RSVP
                       </TableHead>
                       <TableHead className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
+                        Invite Viewed
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
                         Invite Sent
                       </TableHead>
                       <TableHead className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
@@ -765,7 +806,7 @@ export function GuestTable({ guests }: GuestTableProps) {
                     {filteredGuests.length === 0 ? (
                       <TableRow className="hover:bg-transparent">
                         <TableCell
-                          colSpan={9}
+                          colSpan={10}
                           className="py-16 text-center text-stone-500"
                         >
                           No guests match the current search and filters.
@@ -799,13 +840,20 @@ export function GuestTable({ guests }: GuestTableProps) {
                             <RsvpBadge attending={guest.attending} />
                           </TableCell>
                           <TableCell>
+                            <InviteViewedBadge inviteViewed={guest.inviteViewed} />
+                          </TableCell>
+                          <TableCell>
                             <InviteBadge inviteSent={guest.inviteSent} />
                           </TableCell>
                           <TableCell className="text-stone-700">
-                            {guest.plusOne?.trim() || "—"}
+                            {guest.plusOne?.trim() || (
+                              <span className="text-stone-400">—</span>
+                            )}
                           </TableCell>
                           <TableCell className="text-stone-700">
-                            {guest.kids?.trim() || "—"}
+                            {guest.kids?.trim() || (
+                              <span className="text-stone-400">—</span>
+                            )}
                           </TableCell>
                           <TableCell className="font-mono text-xs text-stone-600">
                             <div className="flex items-center gap-1">
