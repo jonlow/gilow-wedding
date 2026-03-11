@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LOCAL_DEVELOPMENT_REQUEST_SOURCE } from "@/lib/request-ip";
+import { cn } from "@/lib/utils";
+import { getAuditEventAppearance } from "./audit-event-appearance";
 import { ResetGuestLogDialog } from "./ResetGuestLogDialog";
 
 type GuestAuditSheetProps = {
@@ -159,22 +161,40 @@ export function GuestAuditSheet({
 function GuestAuditEventCard({ event }: { event: GuestAuditEvent }) {
   const isLocalDevelopmentEvent =
     event.ipAddress === LOCAL_DEVELOPMENT_REQUEST_SOURCE;
+  const appearance = getAuditEventAppearance(event.eventLabel);
 
   return (
-    <div className="bg-muted/40 rounded-md border px-3 py-2">
-      <p className="text-sm font-medium">{event.eventLabel}</p>
-      <p className="text-muted-foreground text-xs">
+    <div
+      className={cn(
+        "rounded-xl border border-stone-200/80 bg-white px-3 py-3 shadow-sm",
+      )}
+    >
+      <div className="flex items-center gap-2">
+        <span
+          className={cn(
+            "inline-flex min-w-0 items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium",
+            appearance.pillClassName,
+          )}
+        >
+          <span
+            aria-hidden="true"
+            className={cn("h-1.5 w-1.5 shrink-0 rounded-full", appearance.dotClassName)}
+          />
+          <span className="truncate">{event.eventLabel}</span>
+        </span>
+      </div>
+      <p className="text-muted-foreground mt-2 text-xs">
         {new Date(event.eventAt).toLocaleString()}
       </p>
       {isLocalDevelopmentEvent ? (
-        <p className="text-muted-foreground text-xs">
+        <p className="text-muted-foreground mt-2 text-xs">
           Source: Local development
         </p>
       ) : event.ipAddress ? (
-        <p className="text-muted-foreground text-xs">IP: {event.ipAddress}</p>
+        <p className="text-muted-foreground mt-2 text-xs">IP: {event.ipAddress}</p>
       ) : null}
       {event.city || event.country ? (
-        <p className="text-muted-foreground text-xs">
+        <p className="text-muted-foreground mt-1 text-xs">
           {[event.city, event.country].filter(Boolean).join(", ")}
         </p>
       ) : null}

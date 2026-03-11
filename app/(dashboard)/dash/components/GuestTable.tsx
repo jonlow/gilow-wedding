@@ -7,6 +7,7 @@ import {
   Copy,
   Check,
   Plus,
+  Search,
   ScrollText,
   Users,
   FileUp,
@@ -43,6 +44,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
 import type { Id } from "@/convex/_generated/dataModel";
 import { api } from "@/convex/_generated/api";
 import { getGuestHouseholdSize } from "@/lib/guest-headcount";
@@ -202,6 +204,7 @@ export function GuestTable({ guests }: GuestTableProps) {
   const [mounted, setMounted] = useState(false);
   const [rsvpFilter, setRsvpFilter] = useState<RsvpFilter>("all");
   const [inviteFilter, setInviteFilter] = useState<InviteFilter>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [copiedGuestId, setCopiedGuestId] = useState<Id<"guests"> | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [guestToDelete, setGuestToDelete] = useState<{
@@ -278,6 +281,8 @@ export function GuestTable({ guests }: GuestTableProps) {
     }
   };
 
+  const normalizedSearchQuery = searchQuery.trim().toLowerCase();
+
   const filteredGuests = guests.filter((guest) => {
     const matchesRsvp =
       rsvpFilter === "all"
@@ -295,10 +300,27 @@ export function GuestTable({ guests }: GuestTableProps) {
           ? guest.inviteSent
           : !guest.inviteSent;
 
-    return matchesRsvp && matchesInvite;
+    const fullName = [guest.name, guest.lastName]
+      .filter((value): value is string => Boolean(value?.trim()))
+      .join(" ");
+    const matchesSearch =
+      normalizedSearchQuery.length === 0 ||
+      [
+        guest.name,
+        guest.lastName ?? "",
+        fullName,
+        guest.email,
+        guest.slug,
+        guest.plusOne ?? "",
+      ].some((value) => value.toLowerCase().includes(normalizedSearchQuery));
+
+    return matchesRsvp && matchesInvite && matchesSearch;
   });
 
-  const hasActiveFilters = rsvpFilter !== "all" || inviteFilter !== "all";
+  const hasActiveFilters =
+    rsvpFilter !== "all" ||
+    inviteFilter !== "all" ||
+    normalizedSearchQuery.length > 0;
   const totalHeadcount = guests.reduce(
     (sum, guest) => sum + getGuestHouseholdSize(guest),
     0,
@@ -460,6 +482,11 @@ export function GuestTable({ guests }: GuestTableProps) {
     rsvpFilter === "all" ? null : RSVP_FILTER_LABELS[rsvpFilter];
   const activeInviteLabel =
     inviteFilter === "all" ? null : INVITE_FILTER_LABELS[inviteFilter];
+  const clearFilters = () => {
+    setRsvpFilter("all");
+    setInviteFilter("all");
+    setSearchQuery("");
+  };
 
   return (
     <>
@@ -578,94 +605,106 @@ export function GuestTable({ guests }: GuestTableProps) {
                       size="sm"
                       variant="ghost"
                       className="h-9 rounded-full px-3 text-stone-600 hover:bg-stone-100 hover:text-stone-900"
-                      onClick={() => {
-                        setRsvpFilter("all");
-                        setInviteFilter("all");
-                      }}
+                      onClick={clearFilters}
                     >
                       Clear filters
                     </Button>
                   ) : null}
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={hasActiveFilters ? "outline" : "default"}
-                    className={cn(
-                      "h-9 rounded-full px-4 shadow-sm",
-                      hasActiveFilters
-                        ? "border-stone-200 bg-white text-stone-700 hover:border-stone-300 hover:bg-white"
-                        : "bg-stone-950 text-white hover:bg-stone-800",
-                    )}
-                    onClick={() => {
-                      setRsvpFilter("all");
-                      setInviteFilter("all");
-                    }}
-                  >
-                    All guests ({guests.length})
-                  </Button>
+                <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={hasActiveFilters ? "outline" : "default"}
+                      className={cn(
+                        "h-9 rounded-full px-4 shadow-sm",
+                        hasActiveFilters
+                          ? "border-stone-200 bg-white text-stone-700 hover:border-stone-300 hover:bg-white"
+                          : "bg-stone-950 text-white hover:bg-stone-800",
+                      )}
+                      onClick={clearFilters}
+                    >
+                      All guests ({guests.length})
+                    </Button>
 
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <FilterTrigger
-                        label="RSVP"
-                        activeValue={activeRsvpLabel}
-                        onClear={() => setRsvpFilter("all")}
-                      />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="min-w-52">
-                      <DropdownMenuLabel>RSVP status</DropdownMenuLabel>
-                      <DropdownMenuRadioGroup
-                        value={rsvpFilter}
-                        onValueChange={(value) => setRsvpFilter(value as RsvpFilter)}
-                      >
-                        {(Object.keys(RSVP_FILTER_LABELS) as RsvpFilter[]).map(
-                          (filter) => (
-                            <DropdownMenuRadioItem key={filter} value={filter}>
-                              {RSVP_FILTER_LABELS[filter]} (
-                              {getFilterCount("rsvp", filter)})
-                            </DropdownMenuRadioItem>
-                          ),
-                        )}
-                      </DropdownMenuRadioGroup>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <FilterTrigger
+                          label="RSVP"
+                          activeValue={activeRsvpLabel}
+                          onClear={() => setRsvpFilter("all")}
+                        />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="min-w-52">
+                        <DropdownMenuLabel>RSVP status</DropdownMenuLabel>
+                        <DropdownMenuRadioGroup
+                          value={rsvpFilter}
+                          onValueChange={(value) =>
+                            setRsvpFilter(value as RsvpFilter)
+                          }
+                        >
+                          {(Object.keys(RSVP_FILTER_LABELS) as RsvpFilter[]).map(
+                            (filter) => (
+                              <DropdownMenuRadioItem key={filter} value={filter}>
+                                {RSVP_FILTER_LABELS[filter]} (
+                                {getFilterCount("rsvp", filter)})
+                              </DropdownMenuRadioItem>
+                            ),
+                          )}
+                        </DropdownMenuRadioGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
 
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <FilterTrigger
-                        label="Invite"
-                        activeValue={activeInviteLabel}
-                        onClear={() => setInviteFilter("all")}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <FilterTrigger
+                          label="Invite"
+                          activeValue={activeInviteLabel}
+                          onClear={() => setInviteFilter("all")}
+                        />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="min-w-52">
+                        <DropdownMenuLabel>Invite status</DropdownMenuLabel>
+                        <DropdownMenuRadioGroup
+                          value={inviteFilter}
+                          onValueChange={(value) =>
+                            setInviteFilter(value as InviteFilter)
+                          }
+                        >
+                          {(Object.keys(INVITE_FILTER_LABELS) as InviteFilter[]).map(
+                            (filter) => (
+                              <DropdownMenuRadioItem key={filter} value={filter}>
+                                {INVITE_FILTER_LABELS[filter]} (
+                                {getFilterCount("invite", filter)})
+                              </DropdownMenuRadioItem>
+                            ),
+                          )}
+                        </DropdownMenuRadioGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+
+                  <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center xl:max-w-md">
+                    <div className="relative flex-1">
+                      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+                      <Input
+                        type="search"
+                        value={searchQuery}
+                        onChange={(event) => setSearchQuery(event.target.value)}
+                        placeholder="Search name, last name, email, slug, plus one"
+                        aria-label="Search guest records"
+                        className="h-10 rounded-full border-stone-200 bg-white pl-9 text-sm text-stone-700 placeholder:text-stone-400 focus-visible:border-stone-300 focus-visible:ring-stone-200"
                       />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="min-w-52">
-                      <DropdownMenuLabel>Invite status</DropdownMenuLabel>
-                      <DropdownMenuRadioGroup
-                        value={inviteFilter}
-                        onValueChange={(value) =>
-                          setInviteFilter(value as InviteFilter)
-                        }
-                      >
-                        {(Object.keys(INVITE_FILTER_LABELS) as InviteFilter[]).map(
-                          (filter) => (
-                            <DropdownMenuRadioItem key={filter} value={filter}>
-                              {INVITE_FILTER_LABELS[filter]} (
-                              {getFilterCount("invite", filter)})
-                            </DropdownMenuRadioItem>
-                          ),
-                        )}
-                      </DropdownMenuRadioGroup>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                    </div>
+                  </div>
                 </div>
               </div>
 
               <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-[0_12px_36px_rgba(24,24,27,0.05)]">
                 <div className="border-b border-stone-100 bg-stone-50/70 px-4 py-3 sm:px-5">
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                     <div>
                       <p className="text-sm font-semibold text-stone-900">
                         Guest records
@@ -729,7 +768,7 @@ export function GuestTable({ guests }: GuestTableProps) {
                           colSpan={9}
                           className="py-16 text-center text-stone-500"
                         >
-                          No guests match this filter.
+                          No guests match the current search and filters.
                         </TableCell>
                       </TableRow>
                     ) : (

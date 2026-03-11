@@ -15,6 +15,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import { getAuditEventAppearance } from "./audit-event-appearance";
 
 type AuditEvent = {
   _id: string;
@@ -64,26 +66,7 @@ export function ActivityLogSidebar({ auditEvents }: ActivityLogSidebarProps) {
               auditEvents.map((event) => (
                 <Tooltip key={event._id}>
                   <TooltipTrigger asChild>
-                    <div className="cursor-default rounded-xl border border-stone-200/80 bg-white px-3 py-3 shadow-[0_8px_24px_rgba(24,24,27,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:border-stone-300 hover:shadow-[0_12px_28px_rgba(24,24,27,0.06)]">
-                      <div className="mb-1 flex items-start justify-between gap-3">
-                        <p className="truncate text-sm font-medium text-stone-900">
-                          {event.guestName}
-                        </p>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="shrink-0 text-xs text-stone-500">
-                              {formatRelativeTime(event.eventAt, renderedAt)}
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent side="top">
-                            {formatAustralianDateTime(event.eventAt)}
-                          </TooltipContent>
-                        </Tooltip>
-                      </div>
-                      <p className="line-clamp-2 text-sm text-stone-600">
-                        {event.eventLabel}
-                      </p>
-                    </div>
+                    <ActivityLogEventCard event={event} renderedAt={renderedAt} />
                   </TooltipTrigger>
                   <TooltipContent side="left">
                     <div className="space-y-1">
@@ -111,6 +94,54 @@ export function ActivityLogSidebar({ auditEvents }: ActivityLogSidebarProps) {
         </TooltipProvider>
       </CardContent>
     </Card>
+  );
+}
+
+function ActivityLogEventCard({
+  event,
+  renderedAt,
+}: {
+  event: AuditEvent;
+  renderedAt: number;
+}) {
+  const appearance = getAuditEventAppearance(event.eventLabel);
+
+  return (
+    <div
+      className={cn(
+        "cursor-default rounded-xl border border-stone-200/80 bg-white px-3 py-3 shadow-[0_8px_24px_rgba(24,24,27,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:border-stone-300 hover:shadow-[0_12px_28px_rgba(24,24,27,0.06)]",
+      )}
+    >
+      <div className="mb-2 flex items-start justify-between gap-3">
+        <p className="truncate text-sm font-medium text-stone-900">
+          {event.guestName}
+        </p>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="shrink-0 text-xs text-stone-500">
+              {formatRelativeTime(event.eventAt, renderedAt)}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            {formatAustralianDateTime(event.eventAt)}
+          </TooltipContent>
+        </Tooltip>
+      </div>
+      <div className="flex items-center gap-2">
+        <span
+          className={cn(
+            "inline-flex min-w-0 items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium",
+            appearance.pillClassName,
+          )}
+        >
+          <span
+            aria-hidden="true"
+            className={cn("h-1.5 w-1.5 shrink-0 rounded-full", appearance.dotClassName)}
+          />
+          <span className="truncate">{event.eventLabel}</span>
+        </span>
+      </div>
+    </div>
   );
 }
 
