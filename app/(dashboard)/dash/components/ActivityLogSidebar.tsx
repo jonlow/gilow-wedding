@@ -46,7 +46,11 @@ export function ActivityLogSidebar({ auditEvents }: ActivityLogSidebarProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <ActivityLogList auditEvents={auditEvents} maxHeightClassName="max-h-[70vh]" />
+        <ActivityLogList
+          key={getAuditEventsVersion(auditEvents)}
+          auditEvents={auditEvents}
+          maxHeightClassName="max-h-[70vh]"
+        />
       </CardContent>
     </Card>
   );
@@ -102,6 +106,17 @@ export function ActivityLogList({
     </TooltipProvider>
   );
 }
+
+function getAuditEventsVersion(auditEvents: AuditEvent[] | undefined) {
+  if (auditEvents === undefined) return "loading";
+  if (auditEvents.length === 0) return "empty";
+
+  const first = auditEvents[0];
+  const last = auditEvents[auditEvents.length - 1];
+  return `${auditEvents.length}:${first._id}:${first.eventAt}:${last._id}:${last.eventAt}`;
+}
+
+export { getAuditEventsVersion };
 
 function ActivityLogEventCard({
   event,

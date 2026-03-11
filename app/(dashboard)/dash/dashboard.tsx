@@ -17,7 +17,11 @@ import { logout, type AuthUser } from "./auth-actions";
 import { api } from "@/convex/_generated/api";
 import { AuthProvider } from "./hooks/useAuthToken";
 import { DashboardStats, GuestTable } from "./components";
-import { ActivityLogList, ActivityLogSidebar } from "./components/ActivityLogSidebar";
+import {
+  ActivityLogList,
+  ActivityLogSidebar,
+  getAuditEventsVersion,
+} from "./components/ActivityLogSidebar";
 
 interface DashboardProps {
   user: AuthUser;
@@ -130,7 +134,11 @@ function DashboardContent({ preloadedGuests, token }: DashboardContentProps) {
             </SheetDescription>
           </SheetHeader>
           <div className="px-4 pb-5 pt-4">
-            <ActivityLogList auditEvents={auditEvents} maxHeightClassName="max-h-[calc(82vh-7rem)]" />
+            <ActivityLogList
+              key={getAuditEventsVersion(auditEvents)}
+              auditEvents={auditEvents}
+              maxHeightClassName="max-h-[calc(82vh-7rem)]"
+            />
           </div>
         </SheetContent>
       </Sheet>
