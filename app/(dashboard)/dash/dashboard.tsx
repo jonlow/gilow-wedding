@@ -75,7 +75,6 @@ function DashboardContent({ preloadedGuests, token }: DashboardContentProps) {
           <div className="grid gap-6">
             <DashboardStats
               guests={isLoggingOut ? cachedGuests : guests}
-              auditEvents={auditEvents}
             />
             <GuestTable guests={isLoggingOut ? cachedGuests : guests} />
           </div>

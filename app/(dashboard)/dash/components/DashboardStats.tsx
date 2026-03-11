@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowUpRight, CheckCircle2, Clock3, Mail } from "lucide-react";
+import type { ReactNode } from "react";
+import { ArrowUpRight, CheckCircle2, Clock3, Mail, Users } from "lucide-react";
 import {
   Card,
   CardAction,
@@ -11,50 +11,55 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  getGuestHouseholdSize,
+  getListedKidsCount,
+  hasPlusOne,
+} from "@/lib/guest-headcount";
 
 type Guest = {
   _id: string;
   attending?: boolean;
   inviteSent: boolean;
   name: string;
-};
-
-type AuditEvent = {
-  _id: string;
-  guestId: string;
-  guestName: string;
-  eventLabel: string;
-  eventAt: number;
-  ipAddress?: string;
-  city?: string;
-  country?: string;
+  plusOne?: string;
+  kids?: string;
 };
 
 interface DashboardStatsProps {
   guests: Guest[];
-  auditEvents: AuditEvent[] | undefined;
 }
 
-export function DashboardStats({
-  guests,
-  auditEvents,
-}: DashboardStatsProps) {
-  const [renderedAt] = useState(() => Date.now());
+export function DashboardStats({ guests }: DashboardStatsProps) {
   const totalGuests = guests.length;
+  const totalHeadcount = guests.reduce(
+    (sum, guest) => sum + getGuestHouseholdSize(guest),
+    0,
+  );
   const invitesSent = guests.filter((guest) => guest.inviteSent).length;
   const responsesReceived = guests.filter(
     (guest) => guest.attending !== undefined,
   ).length;
-  const attendingCount = guests.filter((guest) => guest.attending === true).length;
-  const declinedCount = guests.filter((guest) => guest.attending === false).length;
+  const attendingGuestRecords = guests.filter(
+    (guest) => guest.attending === true,
+  ).length;
+  const attendingHeadcount = guests
+    .filter((guest) => guest.attending === true)
+    .reduce((sum, guest) => sum + getGuestHouseholdSize(guest), 0);
+  const declinedHeadcount = guests
+    .filter((guest) => guest.attending === false)
+    .reduce((sum, guest) => sum + getGuestHouseholdSize(guest), 0);
   const pendingResponses = guests.filter(
     (guest) => guest.inviteSent && guest.attending === undefined,
   ).length;
-  const recentActivityCount =
-    auditEvents?.filter(
-      (event) => renderedAt - event.eventAt <= 7 * 24 * 60 * 60 * 1000,
-    ).length ?? 0;
-  const latestEvent = auditEvents?.[0];
+  const pendingHeadcount = guests
+    .filter((guest) => guest.inviteSent && guest.attending === undefined)
+    .reduce((sum, guest) => sum + getGuestHouseholdSize(guest), 0);
+  const plusOneCount = guests.filter((guest) => hasPlusOne(guest.plusOne)).length;
+  const kidsCount = guests.reduce(
+    (sum, guest) => sum + getListedKidsCount(guest.kids),
+    0,
+  );
 
   const responseRate =
     totalGuests === 0 ? 0 : Math.round((responsesReceived / totalGuests) * 100);
@@ -64,55 +69,57 @@ export function DashboardStats({
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
       <StatCard
-        title="Total Guests"
+        title="Guest Records"
         value={totalGuests.toLocaleString()}
         badge={`${inviteRate}% invited`}
-        summary={`${invitesSent} of ${totalGuests} guests have been sent invites.`}
+        summary={`${invitesSent} of ${totalGuests} guest records have been sent invites.`}
         detail={
-          pendingResponses > 0
-            ? `${pendingResponses} invited guests still have not responded.`
-            : "Everyone invited has responded."
+          totalHeadcount > 0
+            ? `Those records currently represent ${totalHeadcount} potential attendees.`
+            : "No guest records have been added yet."
         }
+        icon={<Mail className="h-4 w-4" aria-hidden="true" />}
+      />
+
+      <StatCard
+        title="Potential Headcount"
+        value={totalHeadcount.toLocaleString()}
+        badge="Incl. plus-ones + kids"
+        summary="Total people represented across all guest households."
+        detail={
+          plusOneCount > 0 || kidsCount > 0
+            ? `${plusOneCount} plus-ones and ${kidsCount} listed kids are included in this estimate.`
+            : "No plus-ones or kids are currently listed."
+        }
+        icon={<Users className="h-4 w-4" aria-hidden="true" />}
       />
 
       <StatCard
         title="RSVP Responses"
         value={responsesReceived.toLocaleString()}
         badge={`${responseRate}% replied`}
-        summary="Responses received from guests."
+        summary="Responses received from guest records."
         detail={
           pendingResponses > 0
-            ? `${pendingResponses} invited guests are still pending.`
+            ? `${pendingResponses} invited guest records are still pending.`
             : "No outstanding RSVP responses right now."
         }
+        icon={<Clock3 className="h-4 w-4" aria-hidden="true" />}
       />
 
       <StatCard
-        title="Attending"
-        value={attendingCount.toLocaleString()}
-        badge={`${declinedCount} declined`}
-        summary="Confirmed attendees so far."
+        title="Confirmed Attending"
+        value={attendingHeadcount.toLocaleString()}
+        badge={`${attendingGuestRecords} RSVP yes`}
+        summary="People currently expected to attend."
         detail={
-          declinedCount > 0
-            ? `${declinedCount} guests have declined the invite.`
-            : "No declines have been recorded."
+          pendingHeadcount > 0
+            ? `${pendingHeadcount} more people are still waiting on an RSVP, and ${declinedHeadcount} have declined.`
+            : declinedHeadcount > 0
+              ? `${declinedHeadcount} people have declined so far.`
+              : "No pending or declined attendees right now."
         }
-      />
-
-      <StatCard
-        title="Recent Activity"
-        value={recentActivityCount.toLocaleString()}
-        badge="Last 7 days"
-        summary={
-          latestEvent
-            ? `${latestEvent.guestName}: ${latestEvent.eventLabel}`
-            : "No guest activity has been logged yet."
-        }
-        detail={
-          latestEvent
-            ? `Latest event logged ${formatRelativeTime(latestEvent.eventAt, renderedAt)}.`
-            : "Activity will appear here once guests interact with invites or RSVP."
-        }
+        icon={<CheckCircle2 className="h-4 w-4" aria-hidden="true" />}
       />
     </div>
   );
@@ -124,9 +131,10 @@ interface StatCardProps {
   badge: string;
   summary: string;
   detail: string;
+  icon: ReactNode;
 }
 
-function StatCard({ title, value, badge, summary, detail }: StatCardProps) {
+function StatCard({ title, value, badge, summary, detail, icon }: StatCardProps) {
   return (
     <Card className="justify-between border-stone-200/80 bg-white/80 shadow-[0_16px_50px_rgba(24,24,27,0.06)] backdrop-blur-sm transition-transform duration-200 hover:-translate-y-0.5">
       <CardHeader className="border-b border-stone-100/80 pb-5">
@@ -147,37 +155,9 @@ function StatCard({ title, value, badge, summary, detail }: StatCardProps) {
         <p className="text-base font-medium text-stone-800">{summary}</p>
       </CardContent>
       <CardFooter className="flex items-start gap-2 text-sm text-stone-500">
-        <span className="mt-0.5">
-          {title === "Total Guests" ? (
-            <Mail className="h-4 w-4" aria-hidden="true" />
-          ) : title === "RSVP Responses" ? (
-            <Clock3 className="h-4 w-4" aria-hidden="true" />
-          ) : title === "Attending" ? (
-            <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-          ) : (
-            <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-          )}
-        </span>
+        <span className="mt-0.5">{icon}</span>
         <span>{detail}</span>
       </CardFooter>
     </Card>
   );
-}
-
-function formatRelativeTime(timestamp: number, currentTime: number) {
-  const diff = currentTime - timestamp;
-  const minute = 60 * 1000;
-  const hour = 60 * minute;
-  const day = 24 * hour;
-
-  if (diff < hour) {
-    const minutes = Math.max(1, Math.floor(diff / minute));
-    return `${minutes}m ago`;
-  }
-
-  if (diff < day) {
-    return `${Math.floor(diff / hour)}h ago`;
-  }
-
-  return `${Math.floor(diff / day)}d ago`;
 }

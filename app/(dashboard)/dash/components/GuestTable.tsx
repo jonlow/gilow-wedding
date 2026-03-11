@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/table";
 import type { Id } from "@/convex/_generated/dataModel";
 import { api } from "@/convex/_generated/api";
+import { getGuestHouseholdSize } from "@/lib/guest-headcount";
 import { cn } from "@/lib/utils";
 import { useAuthToken } from "../hooks/useAuthToken";
 import { EditGuestSheet } from "../EditGuestSheet";
@@ -297,6 +298,20 @@ export function GuestTable({ guests }: GuestTableProps) {
   });
 
   const hasActiveFilters = rsvpFilter !== "all" || inviteFilter !== "all";
+  const totalHeadcount = guests.reduce(
+    (sum, guest) => sum + getGuestHouseholdSize(guest),
+    0,
+  );
+  const filteredHeadcount = filteredGuests.reduce(
+    (sum, guest) => sum + getGuestHouseholdSize(guest),
+    0,
+  );
+  const confirmedHeadcount = guests
+    .filter((guest) => guest.attending === true)
+    .reduce((sum, guest) => sum + getGuestHouseholdSize(guest), 0);
+  const filteredConfirmedHeadcount = filteredGuests
+    .filter((guest) => guest.attending === true)
+    .reduce((sum, guest) => sum + getGuestHouseholdSize(guest), 0);
 
   const isAllSelected =
     filteredGuests.length > 0 &&
@@ -540,9 +555,20 @@ export function GuestTable({ guests }: GuestTableProps) {
                       <ListFilter className="h-3.5 w-3.5" />
                       Refine List
                     </div>
-                    <p className="text-sm text-stone-600">
-                      Showing {filteredGuests.length} of {guests.length} guests.
-                    </p>
+                    <div className="space-y-1 text-sm text-stone-600">
+                      <p>
+                        Showing {filteredGuests.length} of {guests.length} guest
+                        records.
+                      </p>
+                      <p>
+                        Headcount: {filteredHeadcount} of {totalHeadcount} people.
+                        Confirmed attending:{" "}
+                        {hasActiveFilters
+                          ? filteredConfirmedHeadcount
+                          : confirmedHeadcount}{" "}
+                        people.
+                      </p>
+                    </div>
                   </div>
                   {hasActiveFilters ? (
                     <Button
