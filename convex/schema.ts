@@ -7,7 +7,7 @@ export default defineSchema({
   guests: defineTable({
     attending: v.optional(v.boolean()),
     inviteSent: v.optional(v.boolean()),
-    email: v.string(),
+    email: v.optional(v.string()),
     secondaryEmail: v.optional(v.string()),
     name: v.string(),
     lastName: v.optional(v.string()),

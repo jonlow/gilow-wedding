@@ -15,7 +15,7 @@ const INVITE_FROM = '"Bel & Jon" <howdy@belandjon.com>';
 type SendInvitePayload = {
   guestId: Id<"guests">;
   name: string;
-  email: string;
+  email?: string;
   secondaryEmail?: string;
   slug: string;
   plusOne?: string;
@@ -79,6 +79,13 @@ export async function POST(request: Request) {
           .filter((email): email is string => Boolean(email)),
       ),
     ];
+
+    if (recipients.length === 0) {
+      return NextResponse.json(
+        { error: "Guest has no email recipients for invite sending." },
+        { status: 400 },
+      );
+    }
 
     const emailResult = await sendEmail({
       from: INVITE_FROM,

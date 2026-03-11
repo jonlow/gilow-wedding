@@ -58,12 +58,12 @@ This file documents Convex endpoint functions in this project (`query`, `mutatio
   - Purpose: Submits RSVP response for a guest.
 
 - `addGuest` (`mutation`)
-  - Args: `{ token, name, email, slug, plusOne?, force? }`
+  - Args: `{ token, name, email?, slug, plusOne?, force? }`
   - Returns: created/duplicate status with duplicate info.
   - Purpose: Adds a guest from dashboard.
 
 - `updateGuest` (`mutation`)
-  - Args: `{ token, guestId, name, email, slug, plusOne?, force? }`
+  - Args: `{ token, guestId, name, email?, slug, plusOne?, force? }`
   - Returns: updated/duplicate status with duplicate info.
   - Purpose: Updates a guest from dashboard.
 

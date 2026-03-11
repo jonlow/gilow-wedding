@@ -4,6 +4,11 @@ import type { Id } from "./_generated/dataModel";
 import { v } from "convex/values";
 import { optionalAuth, requireAuth } from "./lib/auth";
 
+function normalizeOptionalEmail(email?: string) {
+  const normalized = email?.trim().toLowerCase();
+  return normalized ? normalized : undefined;
+}
+
 async function logGuestAuditEvent(
   ctx: MutationCtx,
   guestId: Id<"guests">,
@@ -35,7 +40,7 @@ export const listGuests = query({
       inviteViewed: v.boolean(),
       name: v.string(),
       lastName: v.optional(v.string()),
-      email: v.string(),
+      email: v.optional(v.string()),
       secondaryEmail: v.optional(v.string()),
       slug: v.string(),
       plusOne: v.optional(v.string()),
@@ -145,7 +150,7 @@ export const addGuest = mutation({
     token: v.string(),
     name: v.string(),
     lastName: v.optional(v.string()),
-    email: v.string(),
+    email: v.optional(v.string()),
     secondaryEmail: v.optional(v.string()),
     slug: v.string(),
     plusOne: v.optional(v.string()),
@@ -167,16 +172,20 @@ export const addGuest = mutation({
   handler: async (ctx, args) => {
     await requireAuth(ctx, args.token);
 
+    const email = normalizeOptionalEmail(args.email);
+
     // Uniqueness checks using schema indexes
     const [existingSlug, existingEmail] = await Promise.all([
       ctx.db
         .query("guests")
         .withIndex("by_slug", (q) => q.eq("slug", args.slug))
         .unique(),
-      ctx.db
-        .query("guests")
-        .withIndex("by_email", (q) => q.eq("email", args.email))
-        .unique(),
+      email
+        ? ctx.db
+            .query("guests")
+            .withIndex("by_email", (q) => q.eq("email", email))
+            .unique()
+        : null,
     ]);
 
     const duplicates = {
@@ -198,7 +207,7 @@ export const addGuest = mutation({
     const guestId = await ctx.db.insert("guests", {
       name: args.name,
       lastName: args.lastName,
-      email: args.email,
+      email,
       secondaryEmail: args.secondaryEmail,
       slug: args.slug,
       plusOne: args.plusOne,
@@ -223,7 +232,7 @@ export const updateGuest = mutation({
     guestId: v.id("guests"),
     name: v.string(),
     lastName: v.optional(v.string()),
-    email: v.string(),
+    email: v.optional(v.string()),
     secondaryEmail: v.optional(v.string()),
     slug: v.string(),
     plusOne: v.optional(v.string()),
@@ -249,6 +258,8 @@ export const updateGuest = mutation({
       throw new Error("Guest not found");
     }
 
+    const email = normalizeOptionalEmail(args.email);
+
     // Uniqueness checks - only check if value changed
     const [existingSlug, existingEmail] = await Promise.all([
       args.slug !== guest.slug
@@ -257,10 +268,10 @@ export const updateGuest = mutation({
             .withIndex("by_slug", (q) => q.eq("slug", args.slug))
             .unique()
         : null,
-      args.email !== guest.email
+      email !== guest.email && email
         ? ctx.db
             .query("guests")
-            .withIndex("by_email", (q) => q.eq("email", args.email))
+            .withIndex("by_email", (q) => q.eq("email", email))
             .unique()
         : null,
     ]);
@@ -283,7 +294,7 @@ export const updateGuest = mutation({
     await ctx.db.patch(args.guestId, {
       name: args.name,
       lastName: args.lastName,
-      email: args.email,
+      email,
       secondaryEmail: args.secondaryEmail,
       slug: args.slug,
       plusOne: args.plusOne,

@@ -28,11 +28,11 @@ import { GuestForm, type GuestFormValues } from "./GuestForm";
 interface EditGuestSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  guest: {
+    guest: {
     _id: Id<"guests">;
     name: string;
     lastName?: string;
-    email: string;
+    email?: string;
     secondaryEmail?: string;
     slug: string;
     attending?: boolean;
@@ -78,13 +78,14 @@ export function EditGuestSheet({
       const plusOne = values.plusOne?.trim() || undefined;
       const kids = values.kids?.trim() || undefined;
       const lastName = values.lastName?.trim() || undefined;
+      const email = values.email.trim() || undefined;
       const secondaryEmail = values.secondaryEmail.trim() || undefined;
       const result = await updateGuest({
         token,
         guestId: guest._id,
         name: values.name,
         lastName,
-        email: values.email,
+        email,
         secondaryEmail,
         slug: values.slug,
         plusOne,
@@ -122,13 +123,14 @@ export function EditGuestSheet({
       const plusOne = pendingValues.plusOne?.trim() || undefined;
       const kids = pendingValues.kids?.trim() || undefined;
       const lastName = pendingValues.lastName?.trim() || undefined;
+      const email = pendingValues.email.trim() || undefined;
       const secondaryEmail = pendingValues.secondaryEmail.trim() || undefined;
       const result = await updateGuest({
         token,
         guestId: guest._id,
         name: pendingValues.name,
         lastName,
-        email: pendingValues.email,
+        email,
         secondaryEmail,
         slug: pendingValues.slug,
         plusOne,
@@ -175,7 +177,7 @@ export function EditGuestSheet({
             defaultValues={{
               name: guest.name,
               lastName: guest.lastName ?? "",
-              email: guest.email,
+              email: guest.email ?? "",
               secondaryEmail: guest.secondaryEmail ?? "",
               slug: guest.slug,
               plusOne: guest.plusOne ?? "",

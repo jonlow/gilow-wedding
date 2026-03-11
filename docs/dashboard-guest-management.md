@@ -37,11 +37,11 @@ Implemented in `convex/guests.ts`:
   - requires dashboard auth token
   - returns guests for the dashboard
 - `addGuest`
-  - checks uniqueness on `slug` and `email`
+  - checks uniqueness on `slug` and `email` when an email is provided
   - supports `force` to override duplicate warnings
   - logs `Guest created`
 - `updateGuest`
-  - checks uniqueness if `slug` or `email` changed
+  - checks uniqueness if `slug` changed or a provided `email` changed
   - supports `force` to override duplicate warnings
   - logs `Guest details updated`
 - `deleteGuest`
@@ -69,6 +69,7 @@ Important detail:
 
 - `markInviteSent` only runs after the email send call completes successfully.
 - A failed email send should not mark the guest as invited.
+- Guests without any email recipients do not show the `Send invite` action in the dashboard.
 
 ## Bulk guest import
 
@@ -87,6 +88,7 @@ CSV rules enforced by the UI:
 - extra columns are rejected
 - required values must be present per row
 - email is normalized to lowercase
+- email is still required for CSV import
 
 Import behavior in Convex:
 

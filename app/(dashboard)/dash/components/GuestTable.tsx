@@ -75,7 +75,7 @@ type Guest = {
   inviteViewed: boolean;
   name: string;
   lastName?: string;
-  email: string;
+  email?: string;
   secondaryEmail?: string;
   slug: string;
   plusOne?: string;
@@ -386,7 +386,7 @@ export function GuestTable({ guests }: GuestTableProps) {
         guest.name,
         guest.lastName ?? "",
         fullName,
-        guest.email,
+        guest.email ?? "",
         guest.slug,
         guest.plusOne ?? "",
       ].some((value) => value.toLowerCase().includes(normalizedSearchQuery));
@@ -464,7 +464,9 @@ export function GuestTable({ guests }: GuestTableProps) {
     guest.lastName?.trim() ? `${guest.name} ${guest.lastName.trim()}` : guest.name;
 
   const getGuestEmoji = (guest: Guest) => {
-    const email = guest.email.trim().toLowerCase();
+    const email = guest.email?.trim().toLowerCase();
+
+    if (!email) return null;
 
     if (email === "me@belgiles.com") return { symbol: "👰", label: "Bride" };
     if (email === "jon@avenue.studio") return { symbol: "🤵", label: "Groom" };
@@ -472,8 +474,16 @@ export function GuestTable({ guests }: GuestTableProps) {
     return null;
   };
 
+  const canSendInvite = (guest: Guest) =>
+    Boolean(guest.email?.trim() || guest.secondaryEmail?.trim());
+
   const sendInvite = async (guest: Guest) => {
     if (sendingInviteGuestId) return;
+
+    if (!canSendInvite(guest)) {
+      toast.error(`${guest.name} does not have an email address for invites.`);
+      return;
+    }
 
     const toastId = `send-invite-${guest._id}`;
 
@@ -528,6 +538,10 @@ export function GuestTable({ guests }: GuestTableProps) {
   const handleSendInvite = (guest: Guest) => {
     if (sendingInviteGuestId) return;
 
+    if (!canSendInvite(guest)) {
+      return;
+    }
+
     if (guest.inviteSent) {
       setGuestToResend(guest);
       setResendDialogOpen(true);
@@ -566,6 +580,11 @@ export function GuestTable({ guests }: GuestTableProps) {
         return !guest.inviteViewed;
       }
     }).length;
+
+  const selectedGuestsWithRecipients = guests.filter(
+    (guest) =>
+      selectedGuests.includes(guest._id) && canSendInvite(guest),
+  );
 
   const activeRsvpLabel =
     rsvpFilter === "all" ? null : RSVP_FILTER_LABELS[rsvpFilter];
@@ -803,7 +822,7 @@ export function GuestTable({ guests }: GuestTableProps) {
                         Invite state, response tracking, and guest details.
                       </p>
                     </div>
-                    {selectedGuests.length > 0 ? (
+                    {selectedGuestsWithRecipients.length > 0 ? (
                       <Button
                         size="sm"
                         className="rounded-full bg-stone-950 px-4 text-white hover:bg-stone-800"
@@ -894,7 +913,9 @@ export function GuestTable({ guests }: GuestTableProps) {
                             </span>
                           </TableCell>
                           <TableCell className="text-stone-700">
-                            {guest.email}
+                            {guest.email?.trim() || (
+                              <span className="text-stone-400">—</span>
+                            )}
                           </TableCell>
                           <TableCell>
                             <RsvpBadge attending={guest.attending} />
@@ -966,14 +987,16 @@ export function GuestTable({ guests }: GuestTableProps) {
                                 <DropdownMenuContent align="end">
                                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
 
-                                  <DropdownMenuItem
-                                    onClick={() => handleSendInvite(guest)}
-                                    disabled={sendingInviteGuestId === guest._id}
-                                  >
-                                    {sendingInviteGuestId === guest._id
-                                      ? "Sending invite..."
-                                      : "Send invite"}
-                                  </DropdownMenuItem>
+                                  {canSendInvite(guest) ? (
+                                    <DropdownMenuItem
+                                      onClick={() => handleSendInvite(guest)}
+                                      disabled={sendingInviteGuestId === guest._id}
+                                    >
+                                      {sendingInviteGuestId === guest._id
+                                        ? "Sending invite..."
+                                        : "Send invite"}
+                                    </DropdownMenuItem>
+                                  ) : null}
                                   <DropdownMenuItem
                                     onClick={() => handleEditClick(guest)}
                                   >

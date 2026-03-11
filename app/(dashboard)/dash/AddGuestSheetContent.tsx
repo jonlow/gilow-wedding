@@ -51,11 +51,12 @@ export function AddGuestSheetContent({ onClose }: AddGuestSheetContentProps) {
       const plusOne = values.plusOne?.trim() || undefined;
       const kids = values.kids?.trim() || undefined;
       const lastName = values.lastName?.trim() || undefined;
+      const email = values.email.trim() || undefined;
       const result = await addGuest({
         token,
         name: values.name,
         lastName,
-        email: values.email,
+        email,
         slug: values.slug,
         plusOne,
         kids,
@@ -90,11 +91,12 @@ export function AddGuestSheetContent({ onClose }: AddGuestSheetContentProps) {
       const plusOne = pendingValues.plusOne?.trim() || undefined;
       const kids = pendingValues.kids?.trim() || undefined;
       const lastName = pendingValues.lastName?.trim() || undefined;
+      const email = pendingValues.email.trim() || undefined;
       const result = await addGuest({
         token,
         name: pendingValues.name,
         lastName,
-        email: pendingValues.email,
+        email,
         slug: pendingValues.slug,
         plusOne,
         kids,
