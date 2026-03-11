@@ -463,6 +463,15 @@ export function GuestTable({ guests }: GuestTableProps) {
   const getDashboardGuestName = (guest: Guest) =>
     guest.lastName?.trim() ? `${guest.name} ${guest.lastName.trim()}` : guest.name;
 
+  const getGuestEmoji = (guest: Guest) => {
+    const email = guest.email.trim().toLowerCase();
+
+    if (email === "me@belgiles.com") return { symbol: "👰", label: "Bride" };
+    if (email === "jon@avenue.studio") return { symbol: "🤵", label: "Groom" };
+
+    return null;
+  };
+
   const sendInvite = async (guest: Guest) => {
     if (sendingInviteGuestId) return;
 
@@ -856,7 +865,10 @@ export function GuestTable({ guests }: GuestTableProps) {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      filteredGuests.map((guest) => (
+                      filteredGuests.map((guest) => {
+                        const guestEmoji = getGuestEmoji(guest);
+
+                        return (
                         <TableRow
                           key={guest._id}
                           className="border-stone-100 hover:bg-stone-50/70"
@@ -874,7 +886,12 @@ export function GuestTable({ guests }: GuestTableProps) {
                             />
                           </TableCell>
                           <TableCell className="font-medium text-stone-900">
-                            {getDashboardGuestName(guest)}
+                            <span className="inline-flex items-center gap-2">
+                              <span>{getDashboardGuestName(guest)}</span>
+                              {guestEmoji ? (
+                                <span aria-label={guestEmoji.label}>{guestEmoji.symbol}</span>
+                              ) : null}
+                            </span>
                           </TableCell>
                           <TableCell className="text-stone-700">
                             {guest.email}
@@ -991,7 +1008,8 @@ export function GuestTable({ guests }: GuestTableProps) {
                             )}
                           </TableCell>
                         </TableRow>
-                      ))
+                        );
+                      })
                     )}
                   </TableBody>
                 </Table>
