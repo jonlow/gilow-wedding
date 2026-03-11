@@ -8,6 +8,7 @@ export default defineSchema({
     attending: v.optional(v.boolean()),
     inviteSent: v.optional(v.boolean()),
     email: v.string(),
+    secondaryEmail: v.optional(v.string()),
     name: v.string(),
     lastName: v.optional(v.string()),
     slug: v.string(),

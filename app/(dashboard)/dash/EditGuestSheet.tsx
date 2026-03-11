@@ -33,6 +33,7 @@ interface EditGuestSheetProps {
     name: string;
     lastName?: string;
     email: string;
+    secondaryEmail?: string;
     slug: string;
     attending?: boolean;
     inviteSent: boolean;
@@ -77,12 +78,14 @@ export function EditGuestSheet({
       const plusOne = values.plusOne?.trim() || undefined;
       const kids = values.kids?.trim() || undefined;
       const lastName = values.lastName?.trim() || undefined;
+      const secondaryEmail = values.secondaryEmail.trim() || undefined;
       const result = await updateGuest({
         token,
         guestId: guest._id,
         name: values.name,
         lastName,
         email: values.email,
+        secondaryEmail,
         slug: values.slug,
         plusOne,
         kids,
@@ -119,12 +122,14 @@ export function EditGuestSheet({
       const plusOne = pendingValues.plusOne?.trim() || undefined;
       const kids = pendingValues.kids?.trim() || undefined;
       const lastName = pendingValues.lastName?.trim() || undefined;
+      const secondaryEmail = pendingValues.secondaryEmail.trim() || undefined;
       const result = await updateGuest({
         token,
         guestId: guest._id,
         name: pendingValues.name,
         lastName,
         email: pendingValues.email,
+        secondaryEmail,
         slug: pendingValues.slug,
         plusOne,
         kids,
@@ -171,6 +176,7 @@ export function EditGuestSheet({
               name: guest.name,
               lastName: guest.lastName ?? "",
               email: guest.email,
+              secondaryEmail: guest.secondaryEmail ?? "",
               slug: guest.slug,
               plusOne: guest.plusOne ?? "",
               kids: guest.kids ?? "",
@@ -180,6 +186,7 @@ export function EditGuestSheet({
             onSubmit={handleSubmit}
             submitLabel="Save Changes"
             submittingLabel="Saving..."
+            showSecondaryEmail
           />
         </SheetContent>
       </Sheet>

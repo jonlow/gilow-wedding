@@ -26,6 +26,12 @@ export const guestFormSchema = z.object({
   email: z.string().email({
     message: "Please enter a valid email address.",
   }),
+  secondaryEmail: z.union([
+    z.literal(""),
+    z.string().email({
+      message: "Please enter a valid email address.",
+    }),
+  ]),
   slug: z.string().min(1, {
     message: "Slug is required.",
   }),
@@ -44,6 +50,7 @@ interface GuestFormProps {
   isSubmitting?: boolean;
   submitLabel?: string;
   submittingLabel?: string;
+  showSecondaryEmail?: boolean;
 }
 
 export function GuestForm({
@@ -51,6 +58,7 @@ export function GuestForm({
     name: "",
     lastName: "",
     email: "",
+    secondaryEmail: "",
     slug: "",
     plusOne: "",
     kids: "",
@@ -62,6 +70,7 @@ export function GuestForm({
   isSubmitting = false,
   submitLabel = "Save",
   submittingLabel = "Saving...",
+  showSecondaryEmail = false,
 }: GuestFormProps) {
   const form = useForm<GuestFormValues>({
     resolver: zodResolver(guestFormSchema),
@@ -127,6 +136,28 @@ export function GuestForm({
               </FormItem>
             )}
           />
+          {showSecondaryEmail ? (
+            <FormField
+              control={form.control}
+              name="secondaryEmail"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Secondary Email (Optional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      placeholder="jane@example.com"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Also send invitation emails to this address.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          ) : null}
           <FormField
             control={form.control}
             name="slug"

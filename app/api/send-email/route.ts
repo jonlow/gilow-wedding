@@ -16,6 +16,7 @@ type SendInvitePayload = {
   guestId: Id<"guests">;
   name: string;
   email: string;
+  secondaryEmail?: string;
   slug: string;
   plusOne?: string;
   kids?: string;
@@ -71,10 +72,17 @@ export async function POST(request: Request) {
       names,
       buttonLink,
     });
+    const recipients = [
+      ...new Set(
+        [payload.email, payload.secondaryEmail]
+          .map((email) => email?.trim())
+          .filter((email): email is string => Boolean(email)),
+      ),
+    ];
 
     const emailResult = await sendEmail({
       from: INVITE_FROM,
-      to: payload.email,
+      to: recipients,
       subject: "Bel & Jon invited you to their wedding",
       text,
       html,

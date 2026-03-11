@@ -72,6 +72,7 @@ type Guest = {
   name: string;
   lastName?: string;
   email: string;
+  secondaryEmail?: string;
   slug: string;
   plusOne?: string;
   kids?: string;
@@ -385,6 +386,7 @@ export function GuestTable({ guests }: GuestTableProps) {
           guestId: guest._id,
           name: guest.name,
           email: guest.email,
+          secondaryEmail: guest.secondaryEmail,
           slug: guest.slug,
           plusOne: guest.plusOne,
           kids: guest.kids,
