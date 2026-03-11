@@ -63,7 +63,7 @@ export function ActivityLogList({
   auditEvents: AuditEvent[] | undefined;
   maxHeightClassName?: string;
 }) {
-  const [renderedAt] = useState(() => Date.now());
+  const now = useRelativeTimeNow(auditEvents);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   useEffect(() => {
@@ -97,7 +97,7 @@ export function ActivityLogList({
             <ActivityLogEventCard
               key={event._id}
               event={event}
-              renderedAt={renderedAt}
+              now={now}
               isTouchDevice={isTouchDevice}
             />
           ))
@@ -120,11 +120,11 @@ export { getAuditEventsVersion };
 
 function ActivityLogEventCard({
   event,
-  renderedAt,
+  now,
   isTouchDevice,
 }: {
   event: AuditEvent;
-  renderedAt: number;
+  now: number;
   isTouchDevice: boolean;
 }) {
   const appearance = getAuditEventAppearance(event.eventLabel);
@@ -151,13 +151,13 @@ function ActivityLogEventCard({
             onClick={() => togglePanel("time")}
             aria-expanded={openPanel === "time"}
           >
-            {formatRelativeTime(event.eventAt, renderedAt)}
+            {formatRelativeTime(event.eventAt, now)}
           </button>
         ) : (
           <Tooltip>
             <TooltipTrigger asChild>
               <span className="shrink-0 text-xs text-stone-500">
-                {formatRelativeTime(event.eventAt, renderedAt)}
+                {formatRelativeTime(event.eventAt, now)}
               </span>
             </TooltipTrigger>
             <TooltipContent side="top">
@@ -251,6 +251,29 @@ function getCountryFlag(countryCode: string) {
   );
 }
 
+function useRelativeTimeNow(auditEvents: AuditEvent[] | undefined) {
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (!auditEvents || auditEvents.length === 0) {
+      return;
+    }
+
+    const nextUpdateAt = getNextRelativeTimeUpdateAt(auditEvents, now);
+    if (nextUpdateAt === null) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setNow(Date.now());
+    }, Math.max(0, nextUpdateAt - Date.now()));
+
+    return () => window.clearTimeout(timeout);
+  }, [auditEvents, now]);
+
+  return now;
+}
+
 function formatRelativeTime(timestamp: number, currentTime: number) {
   const diff = Math.max(0, currentTime - timestamp);
   const minute = 60 * 1000;
@@ -289,6 +312,66 @@ function formatRelativeTime(timestamp: number, currentTime: number) {
 
   const years = Math.floor(diff / year);
   return years === 1 ? "1 year ago" : `${years} years ago`;
+}
+
+function getNextRelativeTimeUpdateAt(
+  auditEvents: AuditEvent[],
+  currentTime: number,
+) {
+  let nextUpdateAt: number | null = null;
+
+  for (const event of auditEvents) {
+    const eventNextUpdateAt = getNextRelativeTimeBoundary(
+      event.eventAt,
+      currentTime,
+    );
+
+    if (eventNextUpdateAt === null) {
+      continue;
+    }
+
+    if (nextUpdateAt === null || eventNextUpdateAt < nextUpdateAt) {
+      nextUpdateAt = eventNextUpdateAt;
+    }
+  }
+
+  return nextUpdateAt;
+}
+
+function getNextRelativeTimeBoundary(timestamp: number, currentTime: number) {
+  const diff = Math.max(0, currentTime - timestamp);
+  const minute = 60 * 1000;
+  const hour = 60 * minute;
+  const day = 24 * hour;
+  const week = 7 * day;
+  const month = 30 * day;
+  const year = 365 * day;
+
+  if (diff < minute) {
+    return timestamp + minute;
+  }
+
+  if (diff < hour) {
+    return timestamp + (Math.floor(diff / minute) + 1) * minute;
+  }
+
+  if (diff < day) {
+    return timestamp + (Math.floor(diff / hour) + 1) * hour;
+  }
+
+  if (diff < week) {
+    return timestamp + (Math.floor(diff / day) + 1) * day;
+  }
+
+  if (diff < month) {
+    return timestamp + (Math.floor(diff / week) + 1) * week;
+  }
+
+  if (diff < year) {
+    return timestamp + (Math.floor(diff / month) + 1) * month;
+  }
+
+  return timestamp + (Math.floor(diff / year) + 1) * year;
 }
 
 function formatAustralianDateTime(timestamp: number) {
