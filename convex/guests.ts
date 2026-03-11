@@ -258,6 +258,10 @@ export const updateGuest = mutation({
       throw new Error("Guest not found");
     }
 
+    if (guest.inviteSent && args.slug !== guest.slug) {
+      throw new Error("Cannot change slug after an invite has been sent");
+    }
+
     const email = normalizeOptionalEmail(args.email);
 
     // Uniqueness checks - only check if value changed

@@ -189,6 +189,7 @@ export function EditGuestSheet({
             submitLabel="Save Changes"
             submittingLabel="Saving..."
             showSecondaryEmail
+            slugDisabled={guest.inviteSent}
           />
         </SheetContent>
       </Sheet>

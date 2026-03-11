@@ -16,6 +16,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Form validation schema - exported for reuse
 export const guestFormSchema = z.object({
@@ -54,6 +60,7 @@ interface GuestFormProps {
   submitLabel?: string;
   submittingLabel?: string;
   showSecondaryEmail?: boolean;
+  slugDisabled?: boolean;
 }
 
 export function GuestForm({
@@ -74,6 +81,7 @@ export function GuestForm({
   submitLabel = "Save",
   submittingLabel = "Saving...",
   showSecondaryEmail = false,
+  slugDisabled = false,
 }: GuestFormProps) {
   const form = useForm<GuestFormValues>({
     resolver: zodResolver(guestFormSchema),
@@ -168,10 +176,36 @@ export function GuestForm({
               <FormItem>
                 <FormLabel>Slug</FormLabel>
                 <FormControl>
-                  <Input placeholder="john-doe" {...field} />
+                  {slugDisabled ? (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="block">
+                            <Input
+                              placeholder="john-doe"
+                              disabled
+                              {...field}
+                            />
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          Invite already sent. Slug changes would break the invite
+                          link.
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : (
+                    <Input
+                      placeholder="john-doe"
+                      disabled={slugDisabled}
+                      {...field}
+                    />
+                  )}
                 </FormControl>
                 <FormDescription>
-                  A unique identifier for the guest (lowercase, hyphenated).
+                  {slugDisabled
+                    ? "This slug is locked because an invite has already been sent."
+                    : "A unique identifier for the guest (lowercase, hyphenated)."}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
