@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePreloadedQuery, useQuery } from "convex/react";
 import type { Preloaded } from "convex/react";
 import { ScrollText } from "lucide-react";
@@ -45,10 +45,34 @@ interface DashboardContentProps {
 function DashboardContent({ preloadedGuests, token }: DashboardContentProps) {
   const guests = usePreloadedQuery(preloadedGuests);
   const auditEvents = useQuery(api.guests.listLatestGuestAuditEvents, { token });
+  const session = useQuery(api.auth.validateSession, { token });
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [mobileActivityLogOpen, setMobileActivityLogOpen] = useState(false);
   const [cachedGuests, setCachedGuests] = useState(guests);
+  const hasStartedSessionRecovery = useRef(false);
+  const isSessionExpired = session?.valid === false;
+
+  useEffect(() => {
+    if (!isSessionExpired || hasStartedSessionRecovery.current) {
+      return;
+    }
+
+    hasStartedSessionRecovery.current = true;
+    let cancelled = false;
+
+    void (async () => {
+      await logout();
+      if (cancelled) {
+        return;
+      }
+      router.refresh();
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isSessionExpired, router]);
 
   const handleLogout = async () => {
     setCachedGuests(guests);
@@ -56,6 +80,21 @@ function DashboardContent({ preloadedGuests, token }: DashboardContentProps) {
     await logout();
     router.refresh();
   };
+
+  if (isSessionExpired) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top_left,_rgba(229,208,155,0.28),_transparent_32%),linear-gradient(180deg,_#fcfaf6_0%,_#f7f4ee_100%)] px-6">
+        <div className="rounded-3xl border border-stone-200/80 bg-white/90 px-6 py-5 text-center shadow-[0_18px_60px_rgba(24,24,27,0.07)] backdrop-blur-sm">
+          <p className="text-sm font-medium text-stone-900">
+            Session expired.
+          </p>
+          <p className="mt-1 text-sm text-stone-600">
+            Redirecting to sign in...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(229,208,155,0.28),_transparent_32%),linear-gradient(180deg,_#fcfaf6_0%,_#f7f4ee_100%)]">

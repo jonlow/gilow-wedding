@@ -564,7 +564,10 @@ export const listLatestGuestAuditEvents = query({
     }),
   ),
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.token);
+    const auth = await optionalAuth(ctx, args.token);
+    if (!auth) {
+      return [];
+    }
 
     const events = await ctx.db
       .query("guestAuditEvents")
