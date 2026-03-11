@@ -13,6 +13,14 @@ export function InvitePageViewTracker({ guestSlug }: InvitePageViewTrackerProps)
       return;
     }
 
+    const sessionStorageKey = `invite-viewed:${normalizedSlug}`;
+
+    if (window.sessionStorage.getItem(sessionStorageKey) === "1") {
+      return;
+    }
+
+    window.sessionStorage.setItem(sessionStorageKey, "1");
+
     const controller = new AbortController();
 
     void fetch("/api/invite-view", {
