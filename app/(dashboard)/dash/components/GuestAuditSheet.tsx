@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
+import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -30,7 +31,7 @@ type GuestAuditSheetProps = {
 };
 
 type GuestAuditEvent = {
-  _id: string;
+  _id: Id<"guestAuditEvents">;
   eventLabel: string;
   eventAt: number;
   ipAddress?: string;
@@ -46,6 +47,8 @@ export function GuestAuditSheet({
 }: GuestAuditSheetProps) {
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [deletingEventId, setDeletingEventId] =
+    useState<Id<"guestAuditEvents"> | null>(null);
   const queryArgs = useMemo(() => {
     if (!guest || !token) {
       return "skip" as const;
@@ -59,6 +62,7 @@ export function GuestAuditSheet({
 
   const auditEvents = useQuery(api.guests.listGuestAuditEvents, queryArgs);
   const clearGuestAuditEvents = useMutation(api.guests.clearGuestAuditEvents);
+  const deleteGuestAuditEvent = useMutation(api.guests.deleteGuestAuditEvent);
   const hasAuditEvents = (auditEvents?.length ?? 0) > 0;
 
   const handleResetConfirm = async () => {
@@ -87,6 +91,28 @@ export function GuestAuditSheet({
       );
     } finally {
       setIsResetting(false);
+    }
+  };
+
+  const handleDeleteEvent = async (auditEventId: Id<"guestAuditEvents">) => {
+    if (!guest || deletingEventId) {
+      return;
+    }
+
+    try {
+      setDeletingEventId(auditEventId);
+      await deleteGuestAuditEvent({
+        token,
+        guestId: guest._id,
+        auditEventId,
+      });
+    } catch (error) {
+      console.error("Failed to delete guest audit event:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete audit event",
+      );
+    } finally {
+      setDeletingEventId(null);
     }
   };
 
@@ -140,7 +166,12 @@ export function GuestAuditSheet({
               </p>
             ) : (
               auditEvents.map((event) => (
-                <GuestAuditEventCard key={event._id} event={event} />
+                <GuestAuditEventCard
+                  key={event._id}
+                  event={event}
+                  isDeleting={deletingEventId === event._id}
+                  onDelete={() => handleDeleteEvent(event._id)}
+                />
               ))
             )}
           </div>
@@ -158,7 +189,15 @@ export function GuestAuditSheet({
   );
 }
 
-function GuestAuditEventCard({ event }: { event: GuestAuditEvent }) {
+function GuestAuditEventCard({
+  event,
+  isDeleting,
+  onDelete,
+}: {
+  event: GuestAuditEvent;
+  isDeleting: boolean;
+  onDelete: () => void;
+}) {
   const isLocalDevelopmentEvent =
     event.ipAddress === LOCAL_DEVELOPMENT_REQUEST_SOURCE;
   const appearance = getAuditEventAppearance(event.eventLabel);
@@ -166,10 +205,10 @@ function GuestAuditEventCard({ event }: { event: GuestAuditEvent }) {
   return (
     <div
       className={cn(
-        "rounded-xl border border-stone-200/80 bg-white px-3 py-3 shadow-sm",
+        "group rounded-xl border border-stone-200/80 bg-white px-3 py-3 shadow-sm",
       )}
     >
-      <div className="flex items-center gap-2">
+      <div className="flex items-start justify-between gap-3">
         <span
           className={cn(
             "inline-flex min-w-0 items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium",
@@ -182,6 +221,19 @@ function GuestAuditEventCard({ event }: { event: GuestAuditEvent }) {
           />
           <span className="truncate">{event.eventLabel}</span>
         </span>
+        <button
+          type="button"
+          className={cn(
+            "rounded-md p-1 text-stone-400 transition hover:bg-stone-100 hover:text-stone-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-300 disabled:pointer-events-none disabled:opacity-50",
+            "opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100",
+          )}
+          onClick={onDelete}
+          disabled={isDeleting}
+          aria-label="Delete audit event"
+          title="Delete audit event"
+        >
+          <Trash2 className="h-4 w-4" aria-hidden="true" />
+        </button>
       </div>
       <p className="text-muted-foreground mt-2 text-xs">
         {new Date(event.eventAt).toLocaleString()}

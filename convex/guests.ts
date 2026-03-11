@@ -515,6 +515,34 @@ export const clearGuestAuditEvents = mutation({
   },
 });
 
+export const deleteGuestAuditEvent = mutation({
+  args: {
+    token: v.string(),
+    guestId: v.id("guests"),
+    auditEventId: v.id("guestAuditEvents"),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await requireAuth(ctx, args.token);
+
+    const [guest, auditEvent] = await Promise.all([
+      ctx.db.get(args.guestId),
+      ctx.db.get(args.auditEventId),
+    ]);
+
+    if (!guest) {
+      throw new Error("Guest not found");
+    }
+
+    if (!auditEvent || auditEvent.guestId !== args.guestId) {
+      throw new Error("Audit event not found");
+    }
+
+    await ctx.db.delete(args.auditEventId);
+    return null;
+  },
+});
+
 export const listLatestGuestAuditEvents = query({
   args: {
     token: v.string(),
