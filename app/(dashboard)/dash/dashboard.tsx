@@ -4,11 +4,20 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { usePreloadedQuery, useQuery } from "convex/react";
 import type { Preloaded } from "convex/react";
+import { ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { logout, type AuthUser } from "./auth-actions";
 import { api } from "@/convex/_generated/api";
 import { AuthProvider } from "./hooks/useAuthToken";
-import { ActivityLogSidebar, DashboardStats, GuestTable } from "./components";
+import { DashboardStats, GuestTable } from "./components";
+import { ActivityLogList, ActivityLogSidebar } from "./components/ActivityLogSidebar";
 
 interface DashboardProps {
   user: AuthUser;
@@ -34,6 +43,7 @@ function DashboardContent({ preloadedGuests, token }: DashboardContentProps) {
   const auditEvents = useQuery(api.guests.listLatestGuestAuditEvents, { token });
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [mobileActivityLogOpen, setMobileActivityLogOpen] = useState(false);
   const [cachedGuests, setCachedGuests] = useState(guests);
 
   const handleLogout = async () => {
@@ -79,9 +89,51 @@ function DashboardContent({ preloadedGuests, token }: DashboardContentProps) {
             <GuestTable guests={isLoggingOut ? cachedGuests : guests} />
           </div>
 
-          <ActivityLogSidebar auditEvents={auditEvents} />
+          <div className="hidden lg:block">
+            <ActivityLogSidebar auditEvents={auditEvents} />
+          </div>
         </div>
       </div>
+
+      <div className="fixed inset-x-0 bottom-4 z-40 flex justify-center px-4 lg:hidden">
+        <Button
+          type="button"
+          size="sm"
+          className="h-11 rounded-full bg-stone-950 px-4 text-white shadow-[0_16px_30px_rgba(24,24,27,0.22)] hover:bg-stone-800"
+          onClick={() => setMobileActivityLogOpen(true)}
+        >
+          <ScrollText className="mr-2 h-4 w-4" />
+          Activity
+          {auditEvents && auditEvents.length > 0 ? (
+            <span className="ml-2 rounded-full bg-white/14 px-2 py-0.5 text-[11px] font-semibold text-white">
+              {Math.min(auditEvents.length, 99)}
+            </span>
+          ) : null}
+        </Button>
+      </div>
+
+      <Sheet open={mobileActivityLogOpen} onOpenChange={setMobileActivityLogOpen}>
+        <SheetContent
+          side="bottom"
+          className="max-h-[82vh] rounded-t-[28px] border-stone-200 bg-[#fcfaf6] px-0 pb-0"
+        >
+          <SheetHeader className="border-b border-stone-200/80 px-5 pb-4 pt-5 text-left">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-stone-500">
+              Audit Trail
+            </p>
+            <SheetTitle className="flex items-center gap-2 text-stone-950">
+              <ScrollText className="h-4 w-4 text-stone-700" aria-hidden="true" />
+              Activity Log
+            </SheetTitle>
+            <SheetDescription>
+              Latest guest invite and RSVP activity.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="px-4 pb-5 pt-4">
+            <ActivityLogList auditEvents={auditEvents} maxHeightClassName="max-h-[calc(82vh-7rem)]" />
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

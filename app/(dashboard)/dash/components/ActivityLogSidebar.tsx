@@ -18,7 +18,7 @@ import {
 import { cn } from "@/lib/utils";
 import { getAuditEventAppearance } from "./audit-event-appearance";
 
-type AuditEvent = {
+export type AuditEvent = {
   _id: string;
   guestId: string;
   guestName: string;
@@ -34,8 +34,6 @@ interface ActivityLogSidebarProps {
 }
 
 export function ActivityLogSidebar({ auditEvents }: ActivityLogSidebarProps) {
-  const [renderedAt] = useState(() => Date.now());
-
   return (
     <Card className="h-fit border-stone-200/80 bg-white/82 shadow-[0_18px_60px_rgba(24,24,27,0.07)] backdrop-blur-sm lg:sticky lg:top-8">
       <CardHeader className="border-b border-stone-100/90 pb-5">
@@ -48,33 +46,47 @@ export function ActivityLogSidebar({ auditEvents }: ActivityLogSidebarProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <TooltipProvider>
-          <div className="max-h-[70vh] space-y-3 overflow-y-auto pr-2">
-            {auditEvents === undefined ? (
-              Array.from({ length: 8 }).map((_, index) => (
-                <div
-                  key={index}
-                  className="rounded-xl border border-stone-200/80 bg-stone-50/70 px-3 py-3"
-                >
-                  <Skeleton className="mb-2 h-4 w-3/5" />
-                  <Skeleton className="h-4 w-4/5" />
-                </div>
-              ))
-            ) : auditEvents.length === 0 ? (
-              <p className="text-sm text-stone-500">No activity yet.</p>
-            ) : (
-              auditEvents.map((event) => (
-                <ActivityLogEventCard
-                  key={event._id}
-                  event={event}
-                  renderedAt={renderedAt}
-                />
-              ))
-            )}
-          </div>
-        </TooltipProvider>
+        <ActivityLogList auditEvents={auditEvents} maxHeightClassName="max-h-[70vh]" />
       </CardContent>
     </Card>
+  );
+}
+
+export function ActivityLogList({
+  auditEvents,
+  maxHeightClassName,
+}: {
+  auditEvents: AuditEvent[] | undefined;
+  maxHeightClassName?: string;
+}) {
+  const [renderedAt] = useState(() => Date.now());
+
+  return (
+    <TooltipProvider>
+      <div className={cn("space-y-3 overflow-y-auto pr-2", maxHeightClassName)}>
+        {auditEvents === undefined ? (
+          Array.from({ length: 8 }).map((_, index) => (
+            <div
+              key={index}
+              className="rounded-xl border border-stone-200/80 bg-stone-50/70 px-3 py-3"
+            >
+              <Skeleton className="mb-2 h-4 w-3/5" />
+              <Skeleton className="h-4 w-4/5" />
+            </div>
+          ))
+        ) : auditEvents.length === 0 ? (
+          <p className="text-sm text-stone-500">No activity yet.</p>
+        ) : (
+          auditEvents.map((event) => (
+            <ActivityLogEventCard
+              key={event._id}
+              event={event}
+              renderedAt={renderedAt}
+            />
+          ))
+        )}
+      </div>
+    </TooltipProvider>
   );
 }
 
