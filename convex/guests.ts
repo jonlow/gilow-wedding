@@ -97,7 +97,7 @@ export const sendRsvpSlackNotification = internalAction({
       kids: args.kids,
     });
     const verb = partySize === 1 ? "is" : "are";
-    const emoji = args.attending ? "\u{1F973}" : "\u{1F622}";
+    const emoji = args.attending ? "\u{1F389}" : "\u{1F622}";
     const outcome = args.attending
       ? "coming to your wedding"
       : "not coming to your wedding";
