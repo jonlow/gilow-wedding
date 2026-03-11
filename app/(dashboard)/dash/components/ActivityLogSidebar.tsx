@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ScrollText } from "lucide-react";
 import {
   Card,
@@ -60,6 +60,18 @@ export function ActivityLogList({
   maxHeightClassName?: string;
 }) {
   const [renderedAt] = useState(() => Date.now());
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const mediaQuery = window.matchMedia("(hover: none), (pointer: coarse)");
+    const updateMatch = () => setIsTouchDevice(mediaQuery.matches);
+
+    updateMatch();
+    mediaQuery.addEventListener("change", updateMatch);
+    return () => mediaQuery.removeEventListener("change", updateMatch);
+  }, []);
 
   return (
     <TooltipProvider>
@@ -82,6 +94,7 @@ export function ActivityLogList({
               key={event._id}
               event={event}
               renderedAt={renderedAt}
+              isTouchDevice={isTouchDevice}
             />
           ))
         )}
@@ -93,11 +106,18 @@ export function ActivityLogList({
 function ActivityLogEventCard({
   event,
   renderedAt,
+  isTouchDevice,
 }: {
   event: AuditEvent;
   renderedAt: number;
+  isTouchDevice: boolean;
 }) {
   const appearance = getAuditEventAppearance(event.eventLabel);
+  const [openPanel, setOpenPanel] = useState<"time" | "meta" | null>(null);
+
+  const togglePanel = (panel: "time" | "meta") => {
+    setOpenPanel((current) => (current === panel ? null : panel));
+  };
 
   return (
     <div
@@ -109,49 +129,97 @@ function ActivityLogEventCard({
         <p className="truncate text-sm font-medium text-stone-900">
           {event.guestName}
         </p>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="shrink-0 text-xs text-stone-500">
-              {formatRelativeTime(event.eventAt, renderedAt)}
-            </span>
-          </TooltipTrigger>
-          <TooltipContent side="top">
-            {formatAustralianDateTime(event.eventAt)}
-          </TooltipContent>
-        </Tooltip>
+        {isTouchDevice ? (
+          <button
+            type="button"
+            className="shrink-0 text-xs text-stone-500"
+            onClick={() => togglePanel("time")}
+            aria-expanded={openPanel === "time"}
+          >
+            {formatRelativeTime(event.eventAt, renderedAt)}
+          </button>
+        ) : (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="shrink-0 text-xs text-stone-500">
+                {formatRelativeTime(event.eventAt, renderedAt)}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              {formatAustralianDateTime(event.eventAt)}
+            </TooltipContent>
+          </Tooltip>
+        )}
       </div>
       <div className="flex items-center gap-2">
-        <Tooltip>
-          <TooltipTrigger asChild>
+        {isTouchDevice ? (
+          <button
+            type="button"
+            className={cn(
+              "inline-flex min-w-0 items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium",
+              appearance.pillClassName,
+            )}
+            onClick={() => togglePanel("meta")}
+            aria-expanded={openPanel === "meta"}
+          >
             <span
+              aria-hidden="true"
               className={cn(
-                "inline-flex min-w-0 items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium",
-                appearance.pillClassName,
+                "h-1.5 w-1.5 shrink-0 rounded-full",
+                appearance.dotClassName,
               )}
-            >
+            />
+            <span className="truncate">{event.eventLabel}</span>
+          </button>
+        ) : (
+          <Tooltip>
+            <TooltipTrigger asChild>
               <span
-                aria-hidden="true"
                 className={cn(
-                  "h-1.5 w-1.5 shrink-0 rounded-full",
-                  appearance.dotClassName,
+                  "inline-flex min-w-0 items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium",
+                  appearance.pillClassName,
                 )}
-              />
-              <span className="truncate">{event.eventLabel}</span>
-            </span>
-          </TooltipTrigger>
-          <TooltipContent side="left">
-            <div className="space-y-1">
-              <p>{event.ipAddress ? `IP: ${event.ipAddress}` : "IP unavailable"}</p>
-              <p>{event.city ? `City: ${event.city}` : "City unavailable"}</p>
-              <p>
-                {event.country
-                  ? `Country: ${getCountryFlag(event.country)} ${event.country}`
-                  : "Country unavailable"}
-              </p>
-            </div>
-          </TooltipContent>
-        </Tooltip>
+              >
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "h-1.5 w-1.5 shrink-0 rounded-full",
+                    appearance.dotClassName,
+                  )}
+                />
+                <span className="truncate">{event.eventLabel}</span>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="left">
+              <MetadataContent event={event} />
+            </TooltipContent>
+          </Tooltip>
+        )}
       </div>
+      {isTouchDevice && openPanel === "time" ? (
+        <div className="mt-3 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-xs text-stone-600">
+          {formatAustralianDateTime(event.eventAt)}
+        </div>
+      ) : null}
+      {isTouchDevice && openPanel === "meta" ? (
+        <div className="mt-3 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-xs text-stone-600">
+          <MetadataContent event={event} />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function MetadataContent({ event }: { event: AuditEvent }) {
+  return (
+    <div className="space-y-1">
+      <p>{event.ipAddress ? `IP: ${event.ipAddress}` : "IP unavailable"}</p>
+      <p>{event.city ? `City: ${event.city}` : "City unavailable"}</p>
+      <p>
+        {event.country
+          ? `Country: ${getCountryFlag(event.country)} ${event.country}`
+          : "Country unavailable"}
+      </p>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 import { submitRsvp } from "./actions";
 
 type RsvpResponse = "yes" | "no";
@@ -18,6 +18,10 @@ export function RsvpForm({
 }: RsvpFormProps) {
   const [isPending, startTransition] = useTransition();
   const [isSubmitted, setIsSubmitted] = useState(initialSubmitted);
+  const [optimisticSubmitted, setOptimisticSubmitted] = useOptimistic(
+    isSubmitted,
+    (_, nextValue: boolean) => nextValue,
+  );
   const [selectedResponse, setSelectedResponse] = useState<RsvpResponse>(
     initialResponse ?? "yes",
   );
@@ -32,6 +36,7 @@ export function RsvpForm({
     setError(null);
     setIsSubmitted(true);
     startTransition(async () => {
+      setOptimisticSubmitted(true);
       try {
         await submitRsvp(formData);
         setSelectedResponse(submittedResponse);
@@ -46,7 +51,7 @@ export function RsvpForm({
 
   return (
     <div>
-      {isSubmitted ? (
+      {optimisticSubmitted || isSubmitted ? (
         <div className="pb-16 text-center">
           <p className="heading-3">Thank you!</p>
           <p>Your RSVP has been submitted.</p>
