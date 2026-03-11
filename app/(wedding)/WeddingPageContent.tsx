@@ -121,7 +121,7 @@ export function WeddingPageContent({
       <div className="prose-narrow bg-blue relative mx-auto mb-12.5 max-w-300 px-8 pt-18 pb-12 text-center md:mb-17.5 md:px-12 md:pb-12">
         <p className="heading-3">IT STARTS AT 11AM UNTIL LATE</p>
 
-        <p>4 Archer Place Mill Park 3082 VIC</p>
+        <p>5 Archer Place Mill Park 3082 VIC</p>
         <p>
           If you need help with travel arrangements, please contact us and we’ll
           help you out.
