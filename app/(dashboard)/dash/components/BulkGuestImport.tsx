@@ -18,6 +18,12 @@ type ParsedGuest = {
   kids?: string;
 };
 
+type ImportIssue = {
+  rowNumber: number;
+  name: string;
+  message: string;
+};
+
 const REQUIRED_COLUMNS = ["name", "plus one", "kids", "slug", "email"] as const;
 
 function parseCsvLine(line: string): string[] {
@@ -68,19 +74,22 @@ function parseGuestCsv(text: string) {
     column.trim().toLowerCase(),
   );
 
-  const hasExactHeaderOrder =
+  const hasRequiredColumns =
     headerRow.length === REQUIRED_COLUMNS.length &&
-    REQUIRED_COLUMNS.every((column, index) => headerRow[index] === column);
+    REQUIRED_COLUMNS.every((column) => headerRow.includes(column));
 
-  if (!hasExactHeaderOrder) {
+  if (!hasRequiredColumns) {
     throw new Error(
-      `CSV columns must be exactly in this order: ${REQUIRED_COLUMNS.join(", ")}.`,
+      `CSV must include exactly these columns: ${REQUIRED_COLUMNS.join(", ")}.`,
     );
   }
 
   const indexMap = new Map(headerRow.map((column, index) => [column, index]));
 
   const guests: ParsedGuest[] = [];
+  const issues: ImportIssue[] = [];
+  const seenEmails = new Set<string>();
+  const seenSlugs = new Set<string>();
 
   lines.slice(1).forEach((line, rowIndex) => {
     const values = parseCsvLine(line);
@@ -89,10 +98,44 @@ function parseGuestCsv(text: string) {
     const email = values[indexMap.get("email") ?? -1]?.trim().toLowerCase();
     const plusOneValue = values[indexMap.get("plus one") ?? -1]?.trim();
     const kidsValue = values[indexMap.get("kids") ?? -1]?.trim();
+    const rowNumber = rowIndex + 2;
+    const label = name || email || slug || `Row ${rowNumber}`;
 
-    if (!name || !slug || !email) {
-      throw new Error(`Row ${rowIndex + 2} is missing required values for name, slug, or email.`);
+    if (!name) {
+      issues.push({ rowNumber, name: label, message: "Missing guest name." });
+      return;
     }
+
+    if (!slug) {
+      issues.push({ rowNumber, name, message: "Missing slug." });
+      return;
+    }
+
+    if (!email) {
+      issues.push({ rowNumber, name, message: "Missing email address." });
+      return;
+    }
+
+    if (seenEmails.has(email)) {
+      issues.push({
+        rowNumber,
+        name,
+        message: "Duplicate email in this CSV.",
+      });
+      return;
+    }
+
+    if (seenSlugs.has(slug)) {
+      issues.push({
+        rowNumber,
+        name,
+        message: "Duplicate slug in this CSV.",
+      });
+      return;
+    }
+
+    seenEmails.add(email);
+    seenSlugs.add(slug);
 
     guests.push({
       name,
@@ -103,7 +146,11 @@ function parseGuestCsv(text: string) {
     });
   });
 
-  return guests;
+  return {
+    guests,
+    issues,
+    totalRows: lines.length - 1,
+  };
 }
 
 export function BulkGuestImport() {
@@ -113,11 +160,13 @@ export function BulkGuestImport() {
 
   const [fileName, setFileName] = useState<string | null>(null);
   const [parsedGuests, setParsedGuests] = useState<ParsedGuest[]>([]);
+  const [importIssues, setImportIssues] = useState<ImportIssue[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [importProgress, setImportProgress] = useState(0);
+  const [sourceRowCount, setSourceRowCount] = useState(0);
   const [importSummary, setImportSummary] = useState<{
     importedCount: number;
     skippedExistingEmailCount: number;
@@ -132,9 +181,11 @@ export function BulkGuestImport() {
   const resetFileState = () => {
     setFileName(null);
     setParsedGuests([]);
+    setImportIssues([]);
     setImportSummary(null);
     setUploadProgress(0);
     setImportProgress(0);
+    setSourceRowCount(0);
     if (inputRef.current) {
       inputRef.current.value = "";
     }
@@ -151,6 +202,8 @@ export function BulkGuestImport() {
     setFileName(file.name);
     setUploadProgress(0);
     setImportProgress(0);
+    setImportIssues([]);
+    setSourceRowCount(0);
 
     try {
       const text = await new Promise<string>((resolve, reject) => {
@@ -166,12 +219,22 @@ export function BulkGuestImport() {
       });
 
       setUploadProgress(100);
-      const guests = parseGuestCsv(text);
-      setParsedGuests(guests);
-      toast.success(`CSV ready: ${guests.length} row(s) parsed.`);
+      const result = parseGuestCsv(text);
+      setParsedGuests(result.guests);
+      setImportIssues(result.issues);
+      setSourceRowCount(result.totalRows);
+      if (result.issues.length > 0) {
+        toast.success(
+          `CSV ready: ${result.guests.length} valid row(s), ${result.issues.length} issue(s) skipped.`,
+        );
+      } else {
+        toast.success(`CSV ready: ${result.guests.length} row(s) parsed.`);
+      }
     } catch (error) {
       console.error("Failed to parse CSV:", error);
       setParsedGuests([]);
+      setImportIssues([]);
+      setSourceRowCount(0);
       toast.error(error instanceof Error ? error.message : "Failed to parse CSV file.");
     } finally {
       setIsParsing(false);
@@ -192,7 +255,7 @@ export function BulkGuestImport() {
       skippedDuplicateFileEmailCount: 0,
       skippedDuplicateSlugCount: 0,
       skippedInvalidCount: 0,
-      totalRows: parsedGuests.length,
+      totalRows: sourceRowCount,
     };
 
     try {
@@ -253,7 +316,7 @@ export function BulkGuestImport() {
       <CardHeader>
         <CardTitle>Bulk Import Guests</CardTitle>
         <CardDescription>
-          Upload a CSV with exactly these columns in this order: name, plus one, kids, slug, email.
+          Upload a CSV with these columns: name, plus one, kids, slug, email.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -313,7 +376,9 @@ export function BulkGuestImport() {
         {hasGuests && (
           <div className="space-y-3 rounded-md border p-3">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium">Ready to import {parsedGuests.length} row(s)</p>
+              <p className="text-sm font-medium">
+                Ready to import {parsedGuests.length} valid row(s)
+              </p>
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={resetFileState} disabled={isImporting}>
                   Clear
@@ -323,6 +388,11 @@ export function BulkGuestImport() {
                 </Button>
               </div>
             </div>
+            {sourceRowCount > parsedGuests.length ? (
+              <p className="text-muted-foreground text-xs">
+                {sourceRowCount - parsedGuests.length} row(s) will be skipped. See issues below.
+              </p>
+            ) : null}
             <div>
               <div className="bg-muted h-2 w-full overflow-hidden rounded-full">
                 <div
@@ -331,6 +401,22 @@ export function BulkGuestImport() {
                 />
               </div>
               <p className="text-muted-foreground mt-2 text-xs">Import progress: {importProgress}%</p>
+            </div>
+          </div>
+        )}
+
+        {importIssues.length > 0 && (
+          <div className="rounded-md border p-3">
+            <div className="mb-2 flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-amber-600" />
+              <p className="text-sm font-semibold">Rows with issues</p>
+            </div>
+            <div className="max-h-40 space-y-1 overflow-y-auto text-xs">
+              {importIssues.map((issue) => (
+                <p key={`${issue.rowNumber}-${issue.name}`} className="text-muted-foreground">
+                  Row {issue.rowNumber} - {issue.name}: {issue.message}
+                </p>
+              ))}
             </div>
           </div>
         )}

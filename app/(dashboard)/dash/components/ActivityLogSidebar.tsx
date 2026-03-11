@@ -35,11 +35,14 @@ export function ActivityLogSidebar({ auditEvents }: ActivityLogSidebarProps) {
   const [renderedAt] = useState(() => Date.now());
 
   return (
-    <Card className="h-fit lg:sticky lg:top-8">
-      <CardHeader>
+    <Card className="h-fit border-stone-200/80 bg-white/82 shadow-[0_18px_60px_rgba(24,24,27,0.07)] backdrop-blur-sm lg:sticky lg:top-8">
+      <CardHeader className="border-b border-stone-100/90 pb-5">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-stone-500">
+          Audit Trail
+        </p>
         <div className="flex items-center gap-2">
-          <ScrollText className="h-4 w-4" aria-hidden="true" />
-          <CardTitle>Activity Log</CardTitle>
+          <ScrollText className="h-4 w-4 text-stone-700" aria-hidden="true" />
+          <CardTitle className="text-stone-950">Activity Log</CardTitle>
         </div>
       </CardHeader>
       <CardContent>
@@ -49,26 +52,26 @@ export function ActivityLogSidebar({ auditEvents }: ActivityLogSidebarProps) {
               Array.from({ length: 8 }).map((_, index) => (
                 <div
                   key={index}
-                  className="bg-muted/40 rounded-md border px-3 py-2"
+                  className="rounded-xl border border-stone-200/80 bg-stone-50/70 px-3 py-3"
                 >
                   <Skeleton className="mb-2 h-4 w-3/5" />
                   <Skeleton className="h-4 w-4/5" />
                 </div>
               ))
             ) : auditEvents.length === 0 ? (
-              <p className="text-muted-foreground text-sm">No activity yet.</p>
+              <p className="text-sm text-stone-500">No activity yet.</p>
             ) : (
               auditEvents.map((event) => (
                 <Tooltip key={event._id}>
                   <TooltipTrigger asChild>
-                    <div className="bg-muted/40 hover:bg-muted/60 cursor-default rounded-md border px-3 py-2 transition-colors">
+                    <div className="cursor-default rounded-xl border border-stone-200/80 bg-white px-3 py-3 shadow-[0_8px_24px_rgba(24,24,27,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:border-stone-300 hover:shadow-[0_12px_28px_rgba(24,24,27,0.06)]">
                       <div className="mb-1 flex items-start justify-between gap-3">
-                        <p className="truncate text-sm font-medium">
+                        <p className="truncate text-sm font-medium text-stone-900">
                           {event.guestName}
                         </p>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <span className="text-muted-foreground shrink-0 text-xs">
+                            <span className="shrink-0 text-xs text-stone-500">
                               {formatRelativeTime(event.eventAt, renderedAt)}
                             </span>
                           </TooltipTrigger>
@@ -77,7 +80,7 @@ export function ActivityLogSidebar({ auditEvents }: ActivityLogSidebarProps) {
                           </TooltipContent>
                         </Tooltip>
                       </div>
-                      <p className="text-muted-foreground line-clamp-2 text-sm">
+                      <p className="line-clamp-2 text-sm text-stone-600">
                         {event.eventLabel}
                       </p>
                     </div>

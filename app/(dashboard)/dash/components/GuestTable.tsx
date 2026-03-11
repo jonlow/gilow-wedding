@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { forwardRef, useState, useEffect, useRef } from "react";
 import {
   MoreHorizontal,
   Mail,
@@ -8,11 +8,15 @@ import {
   Check,
   Plus,
   ScrollText,
+  Users,
+  FileUp,
+  ListFilter,
+  X,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useMutation } from "convex/react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Card,
@@ -26,6 +30,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -39,6 +45,7 @@ import {
 } from "@/components/ui/table";
 import type { Id } from "@/convex/_generated/dataModel";
 import { api } from "@/convex/_generated/api";
+import { cn } from "@/lib/utils";
 import { useAuthToken } from "../hooks/useAuthToken";
 import { EditGuestSheet } from "../EditGuestSheet";
 import { BulkGuestImport } from "./BulkGuestImport";
@@ -73,10 +80,126 @@ interface GuestTableProps {
   guests: Guest[];
 }
 
+type RsvpFilter = "all" | "pending" | "yes" | "no";
+type InviteFilter = "all" | "sent" | "unsent";
+
+const RSVP_FILTER_LABELS: Record<RsvpFilter, string> = {
+  all: "All",
+  pending: "Pending",
+  yes: "RSVP yes",
+  no: "RSVP no",
+};
+
+const INVITE_FILTER_LABELS: Record<InviteFilter, string> = {
+  all: "All",
+  sent: "Invite sent",
+  unsent: "Invite not sent",
+};
+
+type FilterTriggerProps = {
+  label: string;
+  activeValue: string | null;
+  onClear: () => void;
+} & React.ComponentPropsWithoutRef<"button">;
+
+const FilterTrigger = forwardRef<HTMLButtonElement, FilterTriggerProps>(
+  ({ label, activeValue, onClear, className, ...props }, ref) => {
+    return (
+      <button
+        ref={ref}
+        type="button"
+        className={cn(
+          buttonVariants({ variant: "outline", size: "sm" }),
+          "h-9 gap-2 rounded-full border-stone-200 bg-white/90 pr-2 text-stone-700 shadow-sm hover:border-stone-300 hover:bg-white",
+          className,
+        )}
+        {...props}
+      >
+        <span className="truncate">
+          {activeValue ? `${label}: ${activeValue}` : label}
+        </span>
+        {activeValue ? (
+          <span
+            role="button"
+            tabIndex={0}
+            aria-label={`Clear ${label.toLowerCase()} filter`}
+            className="rounded-full p-0.5 text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-900"
+            onPointerDown={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+            }}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onClear();
+            }}
+            onKeyDown={(event) => {
+              if (event.key !== "Enter" && event.key !== " ") return;
+              event.preventDefault();
+              event.stopPropagation();
+              onClear();
+            }}
+          >
+            <X className="h-3 w-3" />
+          </span>
+        ) : null}
+      </button>
+    );
+  },
+);
+
+FilterTrigger.displayName = "FilterTrigger";
+
+function RsvpBadge({ attending }: { attending?: boolean }) {
+  const label =
+    attending === true ? "Yes" : attending === false ? "No" : "Pending";
+
+  const className =
+    attending === true
+      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+      : attending === false
+        ? "border-rose-200 bg-rose-50 text-rose-700"
+        : "border-amber-200 bg-amber-50 text-amber-700";
+
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium",
+        className,
+      )}
+    >
+      {label}
+    </span>
+  );
+}
+
+function InviteBadge({ inviteSent }: { inviteSent: boolean }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium",
+        inviteSent
+          ? "border-stone-200 bg-stone-100 text-stone-700"
+          : "border-stone-200 bg-white text-stone-500",
+      )}
+    >
+      <span
+        className={cn(
+          "h-1.5 w-1.5 rounded-full",
+          inviteSent ? "bg-emerald-500" : "bg-stone-300",
+        )}
+      />
+      {inviteSent ? "Sent" : "Not sent"}
+    </span>
+  );
+}
+
 export function GuestTable({ guests }: GuestTableProps) {
   const token = useAuthToken();
   const [selectedGuests, setSelectedGuests] = useState<Array<Id<"guests">>>([]);
   const [mounted, setMounted] = useState(false);
+  const [rsvpFilter, setRsvpFilter] = useState<RsvpFilter>("all");
+  const [inviteFilter, setInviteFilter] = useState<InviteFilter>("all");
   const [copiedGuestId, setCopiedGuestId] = useState<Id<"guests"> | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [guestToDelete, setGuestToDelete] = useState<{
@@ -153,15 +276,46 @@ export function GuestTable({ guests }: GuestTableProps) {
     }
   };
 
+  const filteredGuests = guests.filter((guest) => {
+    const matchesRsvp =
+      rsvpFilter === "all"
+        ? true
+        : rsvpFilter === "pending"
+          ? guest.attending === undefined
+          : rsvpFilter === "yes"
+            ? guest.attending === true
+            : guest.attending === false;
+
+    const matchesInvite =
+      inviteFilter === "all"
+        ? true
+        : inviteFilter === "sent"
+          ? guest.inviteSent
+          : !guest.inviteSent;
+
+    return matchesRsvp && matchesInvite;
+  });
+
+  const hasActiveFilters = rsvpFilter !== "all" || inviteFilter !== "all";
+
   const isAllSelected =
-    guests.length > 0 && selectedGuests.length === guests.length;
-  const isSomeSelected = selectedGuests.length > 0 && !isAllSelected;
+    filteredGuests.length > 0 &&
+    filteredGuests.every((guest) => selectedGuests.includes(guest._id));
+  const isSomeSelected =
+    filteredGuests.some((guest) => selectedGuests.includes(guest._id)) &&
+    !isAllSelected;
 
   const toggleAll = () => {
     if (isAllSelected) {
-      setSelectedGuests([]);
+      setSelectedGuests((prev) =>
+        prev.filter((id) => !filteredGuests.some((guest) => guest._id === id)),
+      );
     } else {
-      setSelectedGuests(guests.map((g) => g._id));
+      setSelectedGuests((prev) => {
+        const next = new Set(prev);
+        filteredGuests.forEach((guest) => next.add(guest._id));
+        return Array.from(next);
+      });
     }
   };
 
@@ -193,9 +347,6 @@ export function GuestTable({ guests }: GuestTableProps) {
 
   const getDashboardGuestName = (guest: Guest) =>
     guest.lastName?.trim() ? `${guest.name} ${guest.lastName.trim()}` : guest.name;
-
-  const renderPositiveState = (value: boolean) =>
-    value ? <Check className="mx-auto h-4 w-4" aria-label="Yes" /> : null;
 
   const sendInvite = async (guest: Guest) => {
     if (sendingInviteGuestId) return;
@@ -270,204 +421,428 @@ export function GuestTable({ guests }: GuestTableProps) {
     void sendInvite(guest);
   };
 
+  const getFilterCount = (
+    filterType: "rsvp" | "invite",
+    value: string,
+  ) =>
+    guests.filter((guest) => {
+      if (filterType === "rsvp") {
+        if (value === "all") return true;
+        if (value === "pending") return guest.attending === undefined;
+        if (value === "yes") return guest.attending === true;
+        return guest.attending === false;
+      }
+
+      if (filterType === "invite") {
+        if (value === "all") return true;
+        return value === "sent" ? guest.inviteSent : !guest.inviteSent;
+      }
+    }).length;
+
+  const activeRsvpLabel =
+    rsvpFilter === "all" ? null : RSVP_FILTER_LABELS[rsvpFilter];
+  const activeInviteLabel =
+    inviteFilter === "all" ? null : INVITE_FILTER_LABELS[inviteFilter];
+
   return (
     <>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Guest List</CardTitle>
-              <CardDescription>
-                Manage your wedding guests and their RSVPs
-              </CardDescription>
+      <Card className="overflow-hidden border-stone-200/80 bg-white/88 shadow-[0_20px_70px_rgba(24,24,27,0.07)] backdrop-blur-sm">
+        <CardHeader className="border-b border-stone-100/90 bg-stone-50/70 pb-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="space-y-2">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-stone-500">
+                Guest Management
+              </p>
+              <div>
+                <CardTitle className="text-2xl tracking-tight text-stone-950">
+                  Guest List
+                </CardTitle>
+                <CardDescription className="mt-1 text-sm leading-6 text-stone-600">
+                  Manage your wedding guests and their RSVPs.
+                </CardDescription>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              {selectedGuests.length > 0 && (
-                <>
-                  <span className="text-muted-foreground text-sm">
-                    {selectedGuests.length} selected
-                  </span>
-                  <Button size="sm">
-                    <Mail className="mr-2 h-4 w-4" />
-                    Email Invite
-                  </Button>
-                </>
-              )}
-              <AddGuestSheet />
+            <div className="flex items-center gap-2 self-start">
+              {selectedGuests.length > 0 ? (
+                <div className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-3 py-1.5 text-sm text-stone-700 shadow-sm">
+                  <span className="h-2 w-2 rounded-full bg-amber-500" />
+                  {selectedGuests.length} selected
+                </div>
+              ) : null}
+              <div className="[&>button]:border-stone-900 [&>button]:bg-stone-950 [&>button]:text-white [&>button]:shadow-sm [&>button]:hover:bg-stone-800">
+                <AddGuestSheet />
+              </div>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              size="sm"
-              variant={activeTab === "guests" ? "default" : "outline"}
-              onClick={() => setActiveTab("guests")}
-            >
-              Guest table
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant={activeTab === "import" ? "default" : "outline"}
-              onClick={() => setActiveTab("import")}
-            >
-              Bulk import CSV
-            </Button>
+        <CardContent className="space-y-6">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-500">
+              <Users className="h-3.5 w-3.5" />
+              Workspace
+            </div>
+            <div className="inline-flex w-full flex-col rounded-2xl border border-stone-200 bg-stone-50 p-1.5 sm:w-auto sm:flex-row">
+              <button
+                type="button"
+                onClick={() => setActiveTab("guests")}
+                className={cn(
+                  "flex min-w-[11rem] items-start gap-3 rounded-xl px-4 py-3 text-left transition-all",
+                  activeTab === "guests"
+                    ? "bg-white text-stone-950 shadow-sm"
+                    : "text-stone-600 hover:bg-white/80 hover:text-stone-900",
+                )}
+              >
+                <Users
+                  className={cn(
+                    "mt-0.5 h-4 w-4",
+                    activeTab === "guests" ? "text-stone-950" : "text-stone-500",
+                  )}
+                />
+                <span className="space-y-0.5">
+                  <span className="block text-sm font-semibold">Guest table</span>
+                  <span className="block text-xs text-stone-500">
+                    Review status, guests, and invite progress
+                  </span>
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("import")}
+                className={cn(
+                  "flex min-w-[11rem] items-start gap-3 rounded-xl px-4 py-3 text-left transition-all",
+                  activeTab === "import"
+                    ? "bg-white text-stone-950 shadow-sm"
+                    : "text-stone-600 hover:bg-white/80 hover:text-stone-900",
+                )}
+              >
+                <FileUp
+                  className={cn(
+                    "mt-0.5 h-4 w-4",
+                    activeTab === "import" ? "text-stone-950" : "text-stone-500",
+                  )}
+                />
+                <span className="space-y-0.5">
+                  <span className="block text-sm font-semibold">Bulk import CSV</span>
+                  <span className="block text-xs text-stone-500">
+                    Bring in guests from a spreadsheet
+                  </span>
+                </span>
+              </button>
+            </div>
           </div>
 
           {activeTab === "guests" ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12.5">
-                    <Checkbox
-                      checked={
-                        isAllSelected || (isSomeSelected && "indeterminate")
-                      }
-                      onCheckedChange={toggleAll}
-                      aria-label="Select all"
-                    />
-                  </TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>RSVP</TableHead>
-                  <TableHead>Invite Sent</TableHead>
-                  <TableHead>Plus One</TableHead>
-                  <TableHead>Kids</TableHead>
-                  <TableHead>Slug</TableHead>
-                  <TableHead className="w-12.5"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {guests.map((guest) => (
-                  <TableRow
-                    key={guest._id}
-                    data-state={
-                      selectedGuests.includes(guest._id)
-                        ? "selected"
-                        : undefined
-                    }
+            <>
+              <div className="space-y-3 rounded-2xl border border-stone-200 bg-stone-50/60 p-4">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-500">
+                      <ListFilter className="h-3.5 w-3.5" />
+                      Refine List
+                    </div>
+                    <p className="text-sm text-stone-600">
+                      Showing {filteredGuests.length} of {guests.length} guests.
+                    </p>
+                  </div>
+                  {hasActiveFilters ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      className="h-9 rounded-full px-3 text-stone-600 hover:bg-stone-100 hover:text-stone-900"
+                      onClick={() => {
+                        setRsvpFilter("all");
+                        setInviteFilter("all");
+                      }}
+                    >
+                      Clear filters
+                    </Button>
+                  ) : null}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={hasActiveFilters ? "outline" : "default"}
+                    className={cn(
+                      "h-9 rounded-full px-4 shadow-sm",
+                      hasActiveFilters
+                        ? "border-stone-200 bg-white text-stone-700 hover:border-stone-300 hover:bg-white"
+                        : "bg-stone-950 text-white hover:bg-stone-800",
+                    )}
+                    onClick={() => {
+                      setRsvpFilter("all");
+                      setInviteFilter("all");
+                    }}
                   >
-                    <TableCell>
-                      <Checkbox
-                        checked={selectedGuests.includes(guest._id)}
-                        onCheckedChange={() => toggleGuest(guest._id)}
-                        aria-label={`Select ${guest.name}`}
+                    All guests ({guests.length})
+                  </Button>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <FilterTrigger
+                        label="RSVP"
+                        activeValue={activeRsvpLabel}
+                        onClear={() => setRsvpFilter("all")}
                       />
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {getDashboardGuestName(guest)}
-                    </TableCell>
-                    <TableCell>{guest.email}</TableCell>
-                    <TableCell className="text-center">
-                      {guest.attending === true
-                        ? "Yes"
-                        : guest.attending === false
-                          ? "No"
-                          : ""}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {renderPositiveState(guest.inviteSent)}
-                    </TableCell>
-                    <TableCell>{guest.plusOne?.trim() || "—"}</TableCell>
-                    <TableCell>{guest.kids?.trim() || "—"}</TableCell>
-                    <TableCell className="font-mono text-xs">
-                      <div className="flex items-center gap-1">
-                        <span>{guest.slug}</span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={() =>
-                            handleCopyGuestUrl(guest.slug, guest._id)
-                          }
-                          aria-label={
-                            copiedGuestId === guest._id
-                              ? `Copied link for ${guest.name}`
-                              : `Copy guest link for ${guest.name}`
-                          }
-                          title={
-                            copiedGuestId === guest._id
-                              ? "Copied"
-                              : "Copy guest link"
-                          }
-                          disabled={!mounted}
-                        >
-                          {copiedGuestId === guest._id ? (
-                            <Check className="h-3.5 w-3.5" />
-                          ) : (
-                            <Copy className="h-3.5 w-3.5" />
-                          )}
-                          <span className="sr-only">
-                            {copiedGuestId === guest._id
-                              ? "Copied guest link"
-                              : "Copy guest link"}
-                          </span>
-                        </Button>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {mounted ? (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <span className="sr-only">Open menu</span>
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="min-w-52">
+                      <DropdownMenuLabel>RSVP status</DropdownMenuLabel>
+                      <DropdownMenuRadioGroup
+                        value={rsvpFilter}
+                        onValueChange={(value) => setRsvpFilter(value as RsvpFilter)}
+                      >
+                        {(Object.keys(RSVP_FILTER_LABELS) as RsvpFilter[]).map(
+                          (filter) => (
+                            <DropdownMenuRadioItem key={filter} value={filter}>
+                              {RSVP_FILTER_LABELS[filter]} (
+                              {getFilterCount("rsvp", filter)})
+                            </DropdownMenuRadioItem>
+                          ),
+                        )}
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
 
-                            <DropdownMenuItem
-                              onClick={() => handleSendInvite(guest)}
-                              disabled={sendingInviteGuestId === guest._id}
-                            >
-                              {sendingInviteGuestId === guest._id
-                                ? "Sending invite..."
-                                : "Send invite"}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleEditClick(guest)}
-                            >
-                              Edit guest
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleAuditLogClick(guest)}
-                            >
-                              <ScrollText className="mr-2 h-4 w-4" />
-                              View log
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <FilterTrigger
+                        label="Invite"
+                        activeValue={activeInviteLabel}
+                        onClear={() => setInviteFilter("all")}
+                      />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="min-w-52">
+                      <DropdownMenuLabel>Invite status</DropdownMenuLabel>
+                      <DropdownMenuRadioGroup
+                        value={inviteFilter}
+                        onValueChange={(value) =>
+                          setInviteFilter(value as InviteFilter)
+                        }
+                      >
+                        {(Object.keys(INVITE_FILTER_LABELS) as InviteFilter[]).map(
+                          (filter) => (
+                            <DropdownMenuRadioItem key={filter} value={filter}>
+                              {INVITE_FILTER_LABELS[filter]} (
+                              {getFilterCount("invite", filter)})
+                            </DropdownMenuRadioItem>
+                          ),
+                        )}
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
 
-                            <DropdownMenuItem
-                              className="text-destructive"
-                              onClick={() =>
-                                handleDeleteClick(guest._id, guest.name)
-                              }
-                            >
-                              Delete guest
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          className="h-8 w-8 p-0"
-                          disabled
+              <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-[0_12px_36px_rgba(24,24,27,0.05)]">
+                <div className="border-b border-stone-100 bg-stone-50/70 px-4 py-3 sm:px-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-stone-900">
+                        Guest records
+                      </p>
+                      <p className="text-xs text-stone-500">
+                        Invite state, response tracking, and guest details.
+                      </p>
+                    </div>
+                    {selectedGuests.length > 0 ? (
+                      <Button
+                        size="sm"
+                        className="rounded-full bg-stone-950 px-4 text-white hover:bg-stone-800"
+                      >
+                        <Mail className="mr-2 h-4 w-4" />
+                        Email Invite
+                      </Button>
+                    ) : null}
+                  </div>
+                </div>
+
+                <Table>
+                  <TableHeader className="[&_tr]:border-stone-100">
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="w-12.5 px-4 text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
+                        <Checkbox
+                          checked={
+                            isAllSelected || (isSomeSelected && "indeterminate")
+                          }
+                          onCheckedChange={toggleAll}
+                          aria-label="Select all"
+                        />
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
+                        Name
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
+                        Email
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
+                        RSVP
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
+                        Invite Sent
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
+                        Plus One
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
+                        Kids
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
+                        Slug
+                      </TableHead>
+                      <TableHead className="w-12.5 text-xs font-semibold uppercase tracking-[0.16em] text-stone-500"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody className="[&_tr:last-child]:border-b-0">
+                    {filteredGuests.length === 0 ? (
+                      <TableRow className="hover:bg-transparent">
+                        <TableCell
+                          colSpan={9}
+                          className="py-16 text-center text-stone-500"
                         >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                          No guests match this filter.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredGuests.map((guest) => (
+                        <TableRow
+                          key={guest._id}
+                          className="border-stone-100 hover:bg-stone-50/70"
+                          data-state={
+                            selectedGuests.includes(guest._id)
+                              ? "selected"
+                              : undefined
+                          }
+                        >
+                          <TableCell className="px-4">
+                            <Checkbox
+                              checked={selectedGuests.includes(guest._id)}
+                              onCheckedChange={() => toggleGuest(guest._id)}
+                              aria-label={`Select ${guest.name}`}
+                            />
+                          </TableCell>
+                          <TableCell className="font-medium text-stone-900">
+                            {getDashboardGuestName(guest)}
+                          </TableCell>
+                          <TableCell className="text-stone-700">
+                            {guest.email}
+                          </TableCell>
+                          <TableCell>
+                            <RsvpBadge attending={guest.attending} />
+                          </TableCell>
+                          <TableCell>
+                            <InviteBadge inviteSent={guest.inviteSent} />
+                          </TableCell>
+                          <TableCell className="text-stone-700">
+                            {guest.plusOne?.trim() || "—"}
+                          </TableCell>
+                          <TableCell className="text-stone-700">
+                            {guest.kids?.trim() || "—"}
+                          </TableCell>
+                          <TableCell className="font-mono text-xs text-stone-600">
+                            <div className="flex items-center gap-1">
+                              <span>{guest.slug}</span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 rounded-full text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+                                onClick={() =>
+                                  handleCopyGuestUrl(guest.slug, guest._id)
+                                }
+                                aria-label={
+                                  copiedGuestId === guest._id
+                                    ? `Copied link for ${guest.name}`
+                                    : `Copy guest link for ${guest.name}`
+                                }
+                                title={
+                                  copiedGuestId === guest._id
+                                    ? "Copied"
+                                    : "Copy guest link"
+                                }
+                                disabled={!mounted}
+                              >
+                                {copiedGuestId === guest._id ? (
+                                  <Check className="h-3.5 w-3.5" />
+                                ) : (
+                                  <Copy className="h-3.5 w-3.5" />
+                                )}
+                                <span className="sr-only">
+                                  {copiedGuestId === guest._id
+                                    ? "Copied guest link"
+                                    : "Copy guest link"}
+                                </span>
+                              </Button>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {mounted ? (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    className="h-8 w-8 rounded-full p-0 text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+                                  >
+                                    <span className="sr-only">Open menu</span>
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+
+                                  <DropdownMenuItem
+                                    onClick={() => handleSendInvite(guest)}
+                                    disabled={sendingInviteGuestId === guest._id}
+                                  >
+                                    {sendingInviteGuestId === guest._id
+                                      ? "Sending invite..."
+                                      : "Send invite"}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => handleEditClick(guest)}
+                                  >
+                                    Edit guest
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => handleAuditLogClick(guest)}
+                                  >
+                                    <ScrollText className="mr-2 h-4 w-4" />
+                                    View log
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+
+                                  <DropdownMenuItem
+                                    className="text-destructive"
+                                    onClick={() =>
+                                      handleDeleteClick(guest._id, guest.name)
+                                    }
+                                  >
+                                    Delete guest
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                className="h-8 w-8 rounded-full p-0"
+                                disabled
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           ) : (
-            <BulkGuestImport />
+            <div className="rounded-2xl border border-stone-200 bg-white/75 p-1 shadow-[0_12px_36px_rgba(24,24,27,0.05)]">
+              <BulkGuestImport />
+            </div>
           )}
         </CardContent>
       </Card>

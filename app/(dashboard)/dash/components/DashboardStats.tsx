@@ -128,23 +128,25 @@ interface StatCardProps {
 
 function StatCard({ title, value, badge, summary, detail }: StatCardProps) {
   return (
-    <Card className="justify-between">
-      <CardHeader>
-        <CardDescription className="text-sm">{title}</CardDescription>
+    <Card className="justify-between border-stone-200/80 bg-white/80 shadow-[0_16px_50px_rgba(24,24,27,0.06)] backdrop-blur-sm transition-transform duration-200 hover:-translate-y-0.5">
+      <CardHeader className="border-b border-stone-100/80 pb-5">
+        <CardDescription className="text-sm font-medium text-stone-500">
+          {title}
+        </CardDescription>
         <CardAction>
-          <div className="text-foreground inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium">
+          <div className="inline-flex items-center gap-1 rounded-full border border-stone-200 bg-stone-50/90 px-2.5 py-1 text-xs font-medium text-stone-700">
             <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
             {badge}
           </div>
         </CardAction>
-        <CardTitle className="text-4xl font-semibold tracking-tight">
+        <CardTitle className="text-4xl font-semibold tracking-tight text-stone-950">
           {value}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-base font-medium">{summary}</p>
+        <p className="text-base font-medium text-stone-800">{summary}</p>
       </CardContent>
-      <CardFooter className="text-muted-foreground flex items-start gap-2 text-sm">
+      <CardFooter className="flex items-start gap-2 text-sm text-stone-500">
         <span className="mt-0.5">
           {title === "Total Guests" ? (
             <Mail className="h-4 w-4" aria-hidden="true" />
