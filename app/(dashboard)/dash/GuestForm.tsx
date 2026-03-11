@@ -197,10 +197,11 @@ export function GuestForm({
               <FormItem>
                 <FormLabel>Kids (Optional)</FormLabel>
                 <FormControl>
-                  <Input placeholder="Murphy" {...field} />
+                  <Input placeholder="Murphy | Olive" {...field} />
                 </FormControl>
                 <FormDescription>
-                  Names to include in the invite greeting for this guest&apos;s kids.
+                  Names to include in the invite greeting for this guest&apos;s kids. Use
+                  ` | ` between multiple names.
                 </FormDescription>
                 <FormMessage />
               </FormItem>

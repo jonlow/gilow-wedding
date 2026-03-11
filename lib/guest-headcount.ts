@@ -3,7 +3,7 @@ type GuestHeadcountFields = {
   kids?: string;
 };
 
-const NAME_SPLIT_PATTERN = /\s*(?:,|&|\band\b)\s*/i;
+const NAME_SPLIT_PATTERN = /\s*(?:\||,|&|\band\b)\s*/i;
 
 function countListedPeople(value?: string) {
   if (!value) return 0;

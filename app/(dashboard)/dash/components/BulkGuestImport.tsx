@@ -316,7 +316,8 @@ export function BulkGuestImport() {
       <CardHeader>
         <CardTitle>Bulk Import Guests</CardTitle>
         <CardDescription>
-          Upload a CSV with these columns: name, plus one, kids, slug, email.
+          Upload a CSV with these columns: name, plus one, kids, slug, email. Use
+          ` | ` between multiple kids names.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

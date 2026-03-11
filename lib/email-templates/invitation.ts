@@ -76,16 +76,17 @@ export function invitationEmail({ names, buttonLink }: InvitationEmailProps) {
           <tr>
             <td align="center" style="padding:0 32px 30px;">
               <!--[if mso]>
-                <v:rect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${safeButtonLink}" style="height:50px;v-text-anchor:middle;width:170px;" stroke="f" fillcolor="#f8af63">
+                <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${safeButtonLink}" style="height:50px;v-text-anchor:middle;width:170px;" arcsize="8%" stroke="f" fillcolor="#f8af63">
                   <w:anchorlock/>
-                  <center>
-                <![endif]-->
-                    <a href="${safeButtonLink}"
-              style="background-color:#f8af63;color:#000000;display:inline-block;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:16px;font-weight:bold;line-height:50px;text-align:center;text-decoration:none;width:170px;-webkit-text-size-adjust:none;max-width:90%;">View Invitation</a>
-                <!--[if mso]>
+                  <center style="color:#000000;font-family:Segoe UI,Arial,sans-serif;font-size:16px;font-weight:bold;">
+                    View Invitation
                   </center>
-                </v:rect>
+                </v:roundrect>
               <![endif]-->
+              <!--[if !mso]><!-- -->
+              <a href="${safeButtonLink}"
+                style="background-color:#f8af63;color:#000000;display:inline-block;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:16px;font-weight:bold;line-height:50px;text-align:center;text-decoration:none;width:170px;max-width:90%;-webkit-text-size-adjust:none;mso-hide:all;border-radius:4px;">View Invitation</a>
+              <!--<![endif]-->
             </td>
           </tr>
 
