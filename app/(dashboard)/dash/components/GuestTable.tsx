@@ -231,6 +231,7 @@ function InviteViewedBadge({ inviteViewed }: { inviteViewed: boolean }) {
 
 export function GuestTable({ guests }: GuestTableProps) {
   const token = useAuthToken();
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [selectedGuests, setSelectedGuests] = useState<Array<Id<"guests">>>([]);
   const [mounted, setMounted] = useState(false);
   const [rsvpFilter, setRsvpFilter] = useState<RsvpFilter>("all");
@@ -267,6 +268,47 @@ export function GuestTable({ guests }: GuestTableProps) {
       if (copiedResetTimeout.current) {
         clearTimeout(copiedResetTimeout.current);
       }
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (
+        event.key.toLowerCase() !== "f" ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.altKey
+      ) {
+        return;
+      }
+
+      const searchInput = searchInputRef.current;
+      if (!searchInput) return;
+
+      if (document.activeElement === searchInput) {
+        return;
+      }
+
+      const target = event.target;
+      if (
+        target instanceof HTMLElement &&
+        (target.isContentEditable ||
+          target instanceof HTMLInputElement ||
+          target instanceof HTMLTextAreaElement ||
+          target instanceof HTMLSelectElement)
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      searchInput.focus();
+      searchInput.select();
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
 
@@ -728,6 +770,7 @@ export function GuestTable({ guests }: GuestTableProps) {
                     <div className="relative flex-1">
                       <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
                       <Input
+                        ref={searchInputRef}
                         type="search"
                         value={searchQuery}
                         onChange={(event) => setSearchQuery(event.target.value)}
