@@ -149,7 +149,7 @@ function DashboardContent({ preloadedGuests, token }: DashboardContentProps) {
           Activity
           {auditEvents && auditEvents.length > 0 ? (
             <span className="ml-2 rounded-full bg-white/14 px-2 py-0.5 text-[11px] font-semibold text-white">
-              {Math.min(auditEvents.length, 99)}
+              {auditEvents.length}
             </span>
           ) : null}
         </Button>
