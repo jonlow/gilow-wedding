@@ -551,53 +551,72 @@ export const listLatestGuestAuditEvents = query({
   args: {
     token: v.string(),
   },
-  returns: v.array(
-    v.object({
-      _id: v.id("guestAuditEvents"),
-      guestId: v.id("guests"),
-      guestName: v.string(),
-      eventLabel: v.string(),
-      eventAt: v.number(),
-      ipAddress: v.optional(v.string()),
-      city: v.optional(v.string()),
-      country: v.optional(v.string()),
-    }),
-  ),
+  returns: v.object({
+    events: v.array(
+      v.object({
+        _id: v.id("guestAuditEvents"),
+        guestId: v.id("guests"),
+        guestName: v.string(),
+        eventLabel: v.string(),
+        eventAt: v.number(),
+        ipAddress: v.optional(v.string()),
+        city: v.optional(v.string()),
+        country: v.optional(v.string()),
+      }),
+    ),
+    totalCount: v.number(),
+  }),
   handler: async (ctx, args) => {
     const auth = await optionalAuth(ctx, args.token);
     if (!auth) {
-      return [];
+      return {
+        events: [],
+        totalCount: 0,
+      };
     }
 
-    const events = await ctx.db
+    const latestEventsResult = await ctx.db
       .query("guestAuditEvents")
       .withIndex("by_eventAt")
       .order("desc")
-      .collect();
+      .paginate({
+        cursor: null,
+        numItems: 200,
+      });
 
-    const latestEvents = events.slice(0, 200);
+    const latestEvents = latestEventsResult.page;
+    const totalCount = (
+      await ctx.db
+        .query("guestAuditEvents")
+        .withIndex("by_eventAt")
+        .order("desc")
+        .collect()
+    ).length;
 
-    return Promise.all(
-      latestEvents.map(async (event) => {
-        const guest = await ctx.db.get(event.guestId);
-        const guestName = guest
-          ? guest.lastName?.trim()
-            ? `${guest.name} ${guest.lastName.trim()}`
-            : guest.name
-          : "Unknown guest";
+    return {
+      events: await Promise.all(
+        latestEvents.map(async (event) => {
+          const guest = await ctx.db.get(event.guestId);
+          const guestName = guest
+            ? guest.lastName?.trim()
+              ? `${guest.name} ${guest.lastName.trim()}`
+              : guest.name
+            : "Unknown guest";
 
-        return {
-          _id: event._id,
-          guestId: event.guestId,
-          guestName,
-          eventLabel: event.eventLabel,
-          eventAt: event.eventAt,
-          ipAddress: event.ipAddress,
-          city: event.city,
-          country: event.country,
-        };
-      }),
-    );
+          return {
+            _id: event._id,
+            guestId: event.guestId,
+            guestName,
+            eventLabel: event.eventLabel,
+            eventAt: event.eventAt,
+            ipAddress: event.ipAddress,
+            city: event.city,
+            country: event.country,
+          };
+        }),
+      ),
+      totalCount,
+    };
   },
 });
 
