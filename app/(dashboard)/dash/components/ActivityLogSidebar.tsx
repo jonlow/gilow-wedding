@@ -31,9 +31,13 @@ export type AuditEvent = {
 
 interface ActivityLogSidebarProps {
   auditEvents: AuditEvent[] | undefined;
+  totalCount?: number;
 }
 
-export function ActivityLogSidebar({ auditEvents }: ActivityLogSidebarProps) {
+export function ActivityLogSidebar({
+  auditEvents,
+  totalCount,
+}: ActivityLogSidebarProps) {
   return (
     <Card className="h-fit border-stone-200/80 bg-white/82 shadow-[0_18px_60px_rgba(24,24,27,0.07)] backdrop-blur-sm lg:sticky lg:top-8">
       <CardHeader className="border-b border-stone-100/90 pb-5">
@@ -43,6 +47,11 @@ export function ActivityLogSidebar({ auditEvents }: ActivityLogSidebarProps) {
         <div className="flex items-center gap-2">
           <ScrollText className="h-4 w-4 text-stone-700" aria-hidden="true" />
           <CardTitle className="text-stone-950">Activity Log</CardTitle>
+          {totalCount !== undefined && totalCount > 0 ? (
+            <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-semibold text-stone-700">
+              {totalCount.toLocaleString()}
+            </span>
+          ) : null}
         </div>
       </CardHeader>
       <CardContent>

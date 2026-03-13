@@ -1,12 +1,91 @@
 import { query, mutation, internalMutation } from "./_generated/server";
-import type { MutationCtx } from "./_generated/server";
+import type {
+  DatabaseReader,
+  DatabaseWriter,
+  MutationCtx,
+} from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { v } from "convex/values";
 import { optionalAuth, requireAuth } from "./lib/auth";
 
+const GUEST_AUDIT_EVENT_COUNTER_NAME = "guestAuditEvents";
+
 function normalizeOptionalEmail(email?: string) {
   const normalized = email?.trim().toLowerCase();
   return normalized ? normalized : undefined;
+}
+
+async function getAppCounterByName(
+  db: DatabaseReader | DatabaseWriter,
+  name: string,
+) {
+  return db
+    .query("appCounters")
+    .withIndex("by_name", (q) => q.eq("name", name))
+    .unique();
+}
+
+async function countAllGuestAuditEvents(db: DatabaseReader | DatabaseWriter) {
+  let totalCount = 0;
+
+  for await (const event of db.query("guestAuditEvents")) {
+    void event;
+    totalCount += 1;
+  }
+
+  return totalCount;
+}
+
+async function setGuestAuditEventCount(db: DatabaseWriter, count: number) {
+  const existingCounter = await getAppCounterByName(
+    db,
+    GUEST_AUDIT_EVENT_COUNTER_NAME,
+  );
+
+  if (existingCounter) {
+    if (existingCounter.count !== count) {
+      await db.patch(existingCounter._id, { count });
+    }
+    return;
+  }
+
+  await db.insert("appCounters", {
+    name: GUEST_AUDIT_EVENT_COUNTER_NAME,
+    count,
+  });
+}
+
+async function adjustGuestAuditEventCount(db: DatabaseWriter, delta: number) {
+  if (delta === 0) {
+    return;
+  }
+
+  const existingCounter = await getAppCounterByName(
+    db,
+    GUEST_AUDIT_EVENT_COUNTER_NAME,
+  );
+
+  if (!existingCounter) {
+    await setGuestAuditEventCount(db, await countAllGuestAuditEvents(db));
+    return;
+  }
+
+  await db.patch(existingCounter._id, {
+    count: Math.max(0, existingCounter.count + delta),
+  });
+}
+
+async function getGuestAuditEventCount(db: DatabaseReader | DatabaseWriter) {
+  const existingCounter = await getAppCounterByName(
+    db,
+    GUEST_AUDIT_EVENT_COUNTER_NAME,
+  );
+
+  if (existingCounter) {
+    return existingCounter.count;
+  }
+
+  return countAllGuestAuditEvents(db);
 }
 
 async function logGuestAuditEvent(
@@ -25,6 +104,7 @@ async function logGuestAuditEvent(
     city,
     country,
   });
+  await adjustGuestAuditEventCount(ctx.db, 1);
 }
 
 export const listGuests = query({
@@ -512,6 +592,7 @@ export const clearGuestAuditEvents = mutation({
       .collect();
 
     await Promise.all(auditEvents.map((event) => ctx.db.delete(event._id)));
+    await adjustGuestAuditEventCount(ctx.db, -auditEvents.length);
 
     return {
       deletedCount: auditEvents.length,
@@ -543,6 +624,7 @@ export const deleteGuestAuditEvent = mutation({
     }
 
     await ctx.db.delete(args.auditEventId);
+    await adjustGuestAuditEventCount(ctx.db, -1);
     return null;
   },
 });
@@ -569,13 +651,11 @@ export const listLatestGuestAuditEvents = query({
       return [];
     }
 
-    const events = await ctx.db
+    const latestEvents = await ctx.db
       .query("guestAuditEvents")
       .withIndex("by_eventAt")
       .order("desc")
-      .collect();
-
-    const latestEvents = events.slice(0, 200);
+      .take(200);
 
     return Promise.all(
       latestEvents.map(async (event) => {
@@ -598,6 +678,33 @@ export const listLatestGuestAuditEvents = query({
         };
       }),
     );
+  },
+});
+
+export const countGuestAuditEvents = query({
+  args: {
+    token: v.string(),
+  },
+  returns: v.number(),
+  handler: async (ctx, args) => {
+    const auth = await optionalAuth(ctx, args.token);
+    if (!auth) {
+      return 0;
+    }
+
+    return getGuestAuditEventCount(ctx.db);
+  },
+});
+
+export const rebuildGuestAuditEventCount = internalMutation({
+  args: {},
+  returns: v.object({
+    count: v.number(),
+  }),
+  handler: async (ctx) => {
+    const count = await countAllGuestAuditEvents(ctx.db);
+    await setGuestAuditEventCount(ctx.db, count);
+    return { count };
   },
 });
 
@@ -741,6 +848,7 @@ export const resetGuestStateForTesting = internalMutation({
     );
 
     await Promise.all(auditEvents.map((event) => ctx.db.delete(event._id)));
+    await setGuestAuditEventCount(ctx.db, 0);
 
     return {
       ok: true,

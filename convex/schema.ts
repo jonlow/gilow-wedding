@@ -30,6 +30,11 @@ export default defineSchema({
     .index("by_guestId_eventAt", ["guestId", "eventAt"])
     .index("by_eventAt", ["eventAt"]),
 
+  appCounters: defineTable({
+    name: v.string(),
+    count: v.number(),
+  }).index("by_name", ["name"]),
+
   // Dashboard users for authentication
   dashUsers: defineTable({
     username: v.string(),

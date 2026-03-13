@@ -45,6 +45,7 @@ interface DashboardContentProps {
 function DashboardContent({ preloadedGuests, token }: DashboardContentProps) {
   const guests = usePreloadedQuery(preloadedGuests);
   const auditEvents = useQuery(api.guests.listLatestGuestAuditEvents, { token });
+  const auditEventCount = useQuery(api.guests.countGuestAuditEvents, { token });
   const session = useQuery(api.auth.validateSession, { token });
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -133,7 +134,10 @@ function DashboardContent({ preloadedGuests, token }: DashboardContentProps) {
           </div>
 
           <div className="hidden lg:block">
-            <ActivityLogSidebar auditEvents={auditEvents} />
+            <ActivityLogSidebar
+              auditEvents={auditEvents}
+              totalCount={auditEventCount}
+            />
           </div>
         </div>
       </div>
@@ -147,9 +151,9 @@ function DashboardContent({ preloadedGuests, token }: DashboardContentProps) {
         >
           <ScrollText className="mr-2 h-4 w-4" />
           Activity
-          {auditEvents && auditEvents.length > 0 ? (
+          {auditEventCount !== undefined && auditEventCount > 0 ? (
             <span className="ml-2 rounded-full bg-white/14 px-2 py-0.5 text-[11px] font-semibold text-white">
-              {auditEvents.length}
+              {auditEventCount.toLocaleString()}
             </span>
           ) : null}
         </Button>
