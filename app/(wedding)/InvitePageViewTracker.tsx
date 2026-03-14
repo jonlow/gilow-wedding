@@ -6,6 +6,10 @@ type InvitePageViewTrackerProps = {
   guestSlug: string;
 };
 
+type InvitePageViewTrackerWindow = Window & {
+  __inviteViewLoggedSlugs?: Set<string>;
+};
+
 export function InvitePageViewTracker({ guestSlug }: InvitePageViewTrackerProps) {
   useEffect(() => {
     const normalizedSlug = guestSlug.replace(/^\/+/, "");
@@ -13,13 +17,15 @@ export function InvitePageViewTracker({ guestSlug }: InvitePageViewTrackerProps)
       return;
     }
 
-    const sessionStorageKey = `invite-viewed:${normalizedSlug}`;
+    const trackerWindow = window as InvitePageViewTrackerWindow;
+    const loggedSlugs =
+      trackerWindow.__inviteViewLoggedSlugs ??= new Set<string>();
 
-    if (window.sessionStorage.getItem(sessionStorageKey) === "1") {
+    if (loggedSlugs.has(normalizedSlug)) {
       return;
     }
 
-    window.sessionStorage.setItem(sessionStorageKey, "1");
+    loggedSlugs.add(normalizedSlug);
 
     const controller = new AbortController();
 
