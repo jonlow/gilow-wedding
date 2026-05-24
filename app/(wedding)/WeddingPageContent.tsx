@@ -140,7 +140,7 @@ export function WeddingPageContent({
 
       <div className="prose-narrow bg-green relative mx-auto max-w-300 px-8 pt-18 pb-15 text-center text-black md:px-12 md:pb-17">
         <p>Please let us know you can make it by</p>
-        <p className="heading-3">20.05.26</p>
+        <p className="heading-3">20.07.26</p>
       </div>
 
       {/* RSVP Section */}
