@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { formatGuestGreetingNames } from "@/lib/guest-display";
+import { formatRsvpDeadlineForInvite } from "@/lib/rsvp-deadline";
 import { RsvpForm } from "./rsvp-form";
 import { InvitePageViewTracker } from "./InvitePageViewTracker";
 
@@ -10,6 +11,7 @@ type WeddingPageContentProps = {
   guestSlug: string;
   plusOneName?: string;
   kidsName?: string;
+  rsvpDeadline?: string;
   hasSubmittedRsvp: boolean;
   initialResponse: RsvpResponse | null;
 };
@@ -19,6 +21,7 @@ export function WeddingPageContent({
   guestSlug,
   plusOneName,
   kidsName,
+  rsvpDeadline,
   hasSubmittedRsvp,
   initialResponse,
 }: WeddingPageContentProps) {
@@ -140,7 +143,7 @@ export function WeddingPageContent({
 
       <div className="prose-narrow bg-green relative mx-auto max-w-300 px-8 pt-18 pb-15 text-center text-black md:px-12 md:pb-17">
         <p>Please let us know you can make it by</p>
-        <p className="heading-3">20.05.26</p>
+        <p className="heading-3">{formatRsvpDeadlineForInvite(rsvpDeadline)}</p>
       </div>
 
       {/* RSVP Section */}

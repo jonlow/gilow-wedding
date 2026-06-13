@@ -22,6 +22,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { DEFAULT_RSVP_DEADLINE } from "@/lib/rsvp-deadline";
 
 // Form validation schema - exported for reuse
 export const guestFormSchema = z.object({
@@ -46,6 +47,12 @@ export const guestFormSchema = z.object({
   }),
   plusOne: z.string().optional(),
   kids: z.string().optional(),
+  rsvpDeadline: z.union([
+    z.literal(""),
+    z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
+      message: "Please enter a date in YYYY-MM-DD format.",
+    }),
+  ]),
   attending: z.enum(["pending", "yes", "no"]),
   inviteSent: z.boolean(),
 });
@@ -72,6 +79,7 @@ export function GuestForm({
     slug: "",
     plusOne: "",
     kids: "",
+    rsvpDeadline: DEFAULT_RSVP_DEADLINE,
     attending: "pending",
     inviteSent: false,
   },
@@ -239,6 +247,22 @@ export function GuestForm({
                 <FormDescription>
                   Names to include in the invite greeting for this guest&apos;s kids. Use
                   ` | ` between multiple names.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="rsvpDeadline"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>RSVP Deadline</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
+                <FormDescription>
+                  Display-only date shown on this guest&apos;s invite page.
                 </FormDescription>
                 <FormMessage />
               </FormItem>

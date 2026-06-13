@@ -80,6 +80,7 @@ type Guest = {
   slug: string;
   plusOne?: string;
   kids?: string;
+  rsvpDeadline?: string;
 };
 
 interface GuestTableProps {

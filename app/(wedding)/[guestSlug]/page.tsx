@@ -47,6 +47,7 @@ export default async function GuestPage({ params }: GuestPageProps) {
       guestSlug={guest.slug}
       plusOneName={guest.plusOne}
       kidsName={guest.kids}
+      rsvpDeadline={guest.rsvpDeadline}
       hasSubmittedRsvp={hasSubmittedRsvp}
       initialResponse={initialResponse}
     />

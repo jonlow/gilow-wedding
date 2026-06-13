@@ -52,6 +52,7 @@ export function AddGuestSheetContent({ onClose }: AddGuestSheetContentProps) {
       const kids = values.kids?.trim() || undefined;
       const lastName = values.lastName?.trim() || undefined;
       const email = values.email.trim() || undefined;
+      const rsvpDeadline = values.rsvpDeadline.trim() || undefined;
       const result = await addGuest({
         token,
         name: values.name,
@@ -60,6 +61,7 @@ export function AddGuestSheetContent({ onClose }: AddGuestSheetContentProps) {
         slug: values.slug,
         plusOne,
         kids,
+        rsvpDeadline,
         attending: toAttendingValue(values.attending),
         inviteSent: values.inviteSent,
         force: false,
@@ -92,6 +94,7 @@ export function AddGuestSheetContent({ onClose }: AddGuestSheetContentProps) {
       const kids = pendingValues.kids?.trim() || undefined;
       const lastName = pendingValues.lastName?.trim() || undefined;
       const email = pendingValues.email.trim() || undefined;
+      const rsvpDeadline = pendingValues.rsvpDeadline.trim() || undefined;
       const result = await addGuest({
         token,
         name: pendingValues.name,
@@ -100,6 +103,7 @@ export function AddGuestSheetContent({ onClose }: AddGuestSheetContentProps) {
         slug: pendingValues.slug,
         plusOne,
         kids,
+        rsvpDeadline,
         attending: toAttendingValue(pendingValues.attending),
         inviteSent: pendingValues.inviteSent,
         force: true,

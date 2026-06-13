@@ -14,6 +14,7 @@ export default defineSchema({
     slug: v.string(),
     plusOne: v.optional(v.string()),
     kids: v.optional(v.string()),
+    rsvpDeadline: v.optional(v.string()),
   })
     .index("by_slug", ["slug"])
     .index("by_email", ["email"]),

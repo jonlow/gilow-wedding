@@ -48,6 +48,10 @@ Implemented in `convex/guests.ts`:
   - logs `Guest deleted`
   - then deletes the guest row
 
+The add/edit guest form supports a guest-specific RSVP deadline. This deadline
+is shown on that guest's public invite page only; it is not used for dashboard
+filtering, CSV import, or RSVP submission enforcement.
+
 ## Invite sending
 
 Files involved:

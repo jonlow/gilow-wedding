@@ -23,6 +23,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { DEFAULT_RSVP_DEADLINE } from "@/lib/rsvp-deadline";
 import { GuestForm, type GuestFormValues } from "./GuestForm";
 
 interface EditGuestSheetProps {
@@ -39,6 +40,7 @@ interface EditGuestSheetProps {
     inviteSent: boolean;
     plusOne?: string;
     kids?: string;
+    rsvpDeadline?: string;
   } | null;
 }
 
@@ -80,6 +82,7 @@ export function EditGuestSheet({
       const lastName = values.lastName?.trim() || undefined;
       const email = values.email.trim() || undefined;
       const secondaryEmail = values.secondaryEmail.trim() || undefined;
+      const rsvpDeadline = values.rsvpDeadline.trim() || undefined;
       const result = await updateGuest({
         token,
         guestId: guest._id,
@@ -90,6 +93,7 @@ export function EditGuestSheet({
         slug: values.slug,
         plusOne,
         kids,
+        rsvpDeadline,
         attending: toAttendingValue(values.attending),
         inviteSent: values.inviteSent,
         force: false,
@@ -125,6 +129,7 @@ export function EditGuestSheet({
       const lastName = pendingValues.lastName?.trim() || undefined;
       const email = pendingValues.email.trim() || undefined;
       const secondaryEmail = pendingValues.secondaryEmail.trim() || undefined;
+      const rsvpDeadline = pendingValues.rsvpDeadline.trim() || undefined;
       const result = await updateGuest({
         token,
         guestId: guest._id,
@@ -135,6 +140,7 @@ export function EditGuestSheet({
         slug: pendingValues.slug,
         plusOne,
         kids,
+        rsvpDeadline,
         attending: toAttendingValue(pendingValues.attending),
         inviteSent: pendingValues.inviteSent,
         force: true,
@@ -182,6 +188,7 @@ export function EditGuestSheet({
               slug: guest.slug,
               plusOne: guest.plusOne ?? "",
               kids: guest.kids ?? "",
+              rsvpDeadline: guest.rsvpDeadline ?? DEFAULT_RSVP_DEADLINE,
               attending: fromAttendingValue(guest.attending),
               inviteSent: guest.inviteSent,
             }}

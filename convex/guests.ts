@@ -15,6 +15,11 @@ function normalizeOptionalEmail(email?: string) {
   return normalized ? normalized : undefined;
 }
 
+function normalizeOptionalString(value?: string) {
+  const normalized = value?.trim();
+  return normalized ? normalized : undefined;
+}
+
 async function getAppCounterByName(
   db: DatabaseReader | DatabaseWriter,
   name: string,
@@ -125,6 +130,7 @@ export const listGuests = query({
       slug: v.string(),
       plusOne: v.optional(v.string()),
       kids: v.optional(v.string()),
+      rsvpDeadline: v.optional(v.string()),
     }),
   ),
   handler: async (ctx, args) => {
@@ -163,6 +169,7 @@ export const getGuestBySlug = query({
       attending: v.optional(v.boolean()),
       plusOne: v.optional(v.string()),
       kids: v.optional(v.string()),
+      rsvpDeadline: v.optional(v.string()),
     }),
   ),
   handler: async (ctx, args) => {
@@ -178,6 +185,7 @@ export const getGuestBySlug = query({
           attending: guest.attending,
           plusOne: guest.plusOne,
           kids: guest.kids,
+          rsvpDeadline: guest.rsvpDeadline,
         }
       : null;
   },
@@ -235,6 +243,7 @@ export const addGuest = mutation({
     slug: v.string(),
     plusOne: v.optional(v.string()),
     kids: v.optional(v.string()),
+    rsvpDeadline: v.optional(v.string()),
     attending: v.optional(v.boolean()),
     inviteSent: v.optional(v.boolean()),
     force: v.optional(v.boolean()),
@@ -253,6 +262,7 @@ export const addGuest = mutation({
     await requireAuth(ctx, args.token);
 
     const email = normalizeOptionalEmail(args.email);
+    const rsvpDeadline = normalizeOptionalString(args.rsvpDeadline);
 
     // Uniqueness checks using schema indexes
     const [existingSlug, existingEmail] = await Promise.all([
@@ -292,6 +302,7 @@ export const addGuest = mutation({
       slug: args.slug,
       plusOne: args.plusOne,
       kids: args.kids,
+      rsvpDeadline,
       attending: args.attending,
       inviteSent: args.inviteSent ?? false,
     });
@@ -317,6 +328,7 @@ export const updateGuest = mutation({
     slug: v.string(),
     plusOne: v.optional(v.string()),
     kids: v.optional(v.string()),
+    rsvpDeadline: v.optional(v.string()),
     attending: v.optional(v.boolean()),
     inviteSent: v.optional(v.boolean()),
     force: v.optional(v.boolean()),
@@ -343,6 +355,7 @@ export const updateGuest = mutation({
     }
 
     const email = normalizeOptionalEmail(args.email);
+    const rsvpDeadline = normalizeOptionalString(args.rsvpDeadline);
 
     // Uniqueness checks - only check if value changed
     const [existingSlug, existingEmail] = await Promise.all([
@@ -383,6 +396,7 @@ export const updateGuest = mutation({
       slug: args.slug,
       plusOne: args.plusOne,
       kids: args.kids,
+      rsvpDeadline,
       attending: args.attending,
       inviteSent: args.inviteSent ?? false,
     });

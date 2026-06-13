@@ -76,16 +76,26 @@ The wedding page is largely static presentation with guest personalization:
 
 - guest name
 - optional plus-one name
+- RSVP deadline
 - RSVP submission
 - invite page view tracking
 
 The content lives primarily in `app/(wedding)/WeddingPageContent.tsx` and `app/wedding-content.css`.
 
+## RSVP deadline
+
+The invite page shows a guest-specific RSVP deadline when one is set on the
+guest record. Guests without a custom RSVP deadline use the default deadline of
+`2026-05-20`, displayed publicly as `20.05.26`.
+
+The RSVP deadline is display-only. It does not block or otherwise change RSVP
+submission behavior after the date has passed.
+
 ## Caching
 
 - `app/(wedding)/[guestSlug]/page.tsx` sets `revalidate = 600`.
 - Guest lookup is also wrapped in `unstable_cache` and tagged per guest page.
-- Changes to guest name/plus-one/slug may take up to 10 minutes to naturally refresh on the public page unless the cache is otherwise invalidated.
+- Changes to guest name/plus-one/slug/RSVP deadline may take up to 10 minutes to naturally refresh on the public page unless the cache is otherwise invalidated.
 - RSVP submission explicitly invalidates the cached guest page so a reload sees
   the saved RSVP right away.
 
