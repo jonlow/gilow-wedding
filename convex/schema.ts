@@ -1,6 +1,15 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
+export const drinkPreference = v.union(
+  v.literal("beer"), v.literal("whiteWine"), v.literal("sparkling"),
+  v.literal("lightRed"), v.literal("redWine"), v.literal("aperol"), v.literal("whisky"),
+);
+export const drinkProfile = v.object({
+  score: v.optional(v.number()),
+  preferences: v.array(drinkPreference),
+});
+
 export default defineSchema({
   // Other tables here...
 
@@ -31,6 +40,13 @@ export default defineSchema({
     .index("by_guestId", ["guestId"])
     .index("by_guestId_eventAt", ["guestId", "eventAt"])
     .index("by_eventAt", ["eventAt"]),
+
+  // Private dashboard planning data, separate from public invitation records.
+  guestDrinks: defineTable({
+    guestId: v.id("guests"),
+    main: v.optional(drinkProfile),
+    partner: v.optional(drinkProfile),
+  }).index("by_guestId", ["guestId"]),
 
   appCounters: defineTable({
     name: v.string(),

@@ -14,6 +14,9 @@ import {
   FileUp,
   ListFilter,
   ChevronDown,
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
   X,
 } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -51,6 +54,7 @@ import { Input } from "@/components/ui/input";
 import type { Id } from "@/convex/_generated/dataModel";
 import { api } from "@/convex/_generated/api";
 import { getGuestHouseholdSize } from "@/lib/guest-headcount";
+import { compareLastViewed, formatLastViewed } from "@/lib/guest-last-viewed";
 import { cn } from "@/lib/utils";
 import { useAuthToken } from "../hooks/useAuthToken";
 import { EditGuestSheet } from "../EditGuestSheet";
@@ -64,6 +68,7 @@ const guestColumns = [
   { id: "email", label: "Email" },
   { id: "rsvp", label: "RSVP" },
   { id: "inviteViewed", label: "Invite Viewed" },
+  { id: "lastViewedAt", label: "Last Viewed" },
   { id: "inviteSent", label: "Invite Sent" },
   { id: "updateSent", label: "Update Sent" },
   { id: "plusOne", label: "Plus One" },
@@ -89,6 +94,8 @@ type Guest = {
   attending?: boolean;
   inviteSent: boolean;
   inviteViewed: boolean;
+  inviteViewCount: number;
+  lastViewedAt: number | null;
   updateSent: boolean;
   name: string;
   lastName?: string;
@@ -227,8 +234,8 @@ function InviteBadge({ inviteSent }: { inviteSent: boolean }) {
   );
 }
 
-function InviteViewedBadge({ inviteViewed }: { inviteViewed: boolean }) {
-  if (!inviteViewed) {
+function InviteViewedBadge({ count }: { count: number }) {
+  if (count === 0) {
     return <span className="text-stone-400">—</span>;
   }
 
@@ -243,6 +250,7 @@ function InviteViewedBadge({ inviteViewed }: { inviteViewed: boolean }) {
         className={cn("h-1.5 w-1.5 rounded-full", "bg-sky-500")}
       />
       Viewed
+      <span className="border-l border-sky-200 pl-2 tabular-nums" aria-label={`${count} ${count === 1 ? "view" : "views"}`}>{count}</span>
     </span>
   );
 }
@@ -255,6 +263,8 @@ export function GuestTable({ guests }: GuestTableProps) {
   const [rsvpFilter, setRsvpFilter] = useState<RsvpFilter>("all");
   const [inviteFilter, setInviteFilter] = useState<InviteFilter>("all");
   const [hiddenColumns, setHiddenColumns] = useState<GuestColumnId[]>([]);
+  const [viewCountSort, setViewCountSort] = useState<"asc" | "desc" | null>(null);
+  const [lastViewedSort, setLastViewedSort] = useState<"asc" | "desc" | null>(null);
   const visibleColumns = guestColumns.filter(({ id }) => !hiddenColumns.includes(id));
   const [searchQuery, setSearchQuery] = useState("");
   const [copiedGuestId, setCopiedGuestId] = useState<Id<"guests"> | null>(null);
@@ -437,6 +447,13 @@ export function GuestTable({ guests }: GuestTableProps) {
     rsvpFilter !== "all" ||
     inviteFilter !== "all" ||
     normalizedSearchQuery.length > 0;
+  const sortedGuests = lastViewedSort
+    ? [...filteredGuests].sort((a, b) =>
+        compareLastViewed(a.lastViewedAt, b.lastViewedAt, lastViewedSort),
+      )
+    : viewCountSort
+      ? [...filteredGuests].sort((a, b) => viewCountSort === "desc" ? b.inviteViewCount - a.inviteViewCount : a.inviteViewCount - b.inviteViewCount)
+      : filteredGuests;
   const totalHeadcount = guests.reduce(
     (sum, guest) => sum + getGuestHouseholdSize(guest),
     0,
@@ -941,11 +958,34 @@ export function GuestTable({ guests }: GuestTableProps) {
                         />
                       </TableHead>
                       {visibleColumns.map(({ id, label }) => (
-                        <TableHead key={id} className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
-                          {label}
+                        <TableHead key={id} aria-sort={id === "lastViewedAt" ? (lastViewedSort === "asc" ? "ascending" : lastViewedSort === "desc" ? "descending" : "none") : id === "inviteViewed" ? (viewCountSort === "asc" ? "ascending" : viewCountSort === "desc" ? "descending" : "none") : undefined} className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
+                          {id === "lastViewedAt" ? (
+                            <button
+                              type="button"
+                              className="inline-flex items-center gap-2 whitespace-nowrap rounded-sm py-2 uppercase tracking-[0.16em] hover:text-stone-900 focus-visible:outline-2 focus-visible:outline-offset-2"
+                              onClick={() => { setViewCountSort(null); setLastViewedSort((current) => current === "desc" ? "asc" : "desc"); }}
+                              title="Last invitation view · Melbourne time"
+                              aria-label={`Last Viewed: sort ${lastViewedSort === "desc" ? "oldest" : "newest"} first`}
+                            >
+                              {label}
+                              {lastViewedSort === "desc" ? <ArrowDown className="h-3.5 w-3.5" /> : lastViewedSort === "asc" ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowUpDown className="h-3.5 w-3.5" />}
+                            </button>
+                          ) : id === "inviteViewed" ? (
+                            <button
+                              type="button"
+                              className="inline-flex items-center gap-2 whitespace-nowrap rounded-sm py-2 uppercase tracking-[0.16em] hover:text-stone-900 focus-visible:outline-2 focus-visible:outline-offset-2"
+                              onClick={() => { setLastViewedSort(null); setViewCountSort((current) => current === "desc" ? "asc" : "desc"); }}
+                              aria-label={`Invite Viewed: sort ${viewCountSort === "desc" ? "fewest" : "most"} views first`}
+                            >
+                              {label}
+                              {viewCountSort === "desc" ? <ArrowDown className="h-3.5 w-3.5" /> : viewCountSort === "asc" ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowUpDown className="h-3.5 w-3.5" />}
+                            </button>
+                          ) : label}
                         </TableHead>
                       ))}
-                      <TableHead className="w-12.5 text-xs font-semibold uppercase tracking-[0.16em] text-stone-500"></TableHead>
+                      <TableHead className="sticky right-0 z-20 w-12.5 bg-white shadow-[-1px_0_0_0_#e7e5e4]">
+                        <span className="sr-only">Actions</span>
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody className="[&_tr:last-child]:border-b-0">
@@ -959,13 +999,13 @@ export function GuestTable({ guests }: GuestTableProps) {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      filteredGuests.map((guest) => {
+                      sortedGuests.map((guest) => {
                         const guestEmoji = getGuestEmoji(guest);
 
                         return (
                         <TableRow
                           key={guest._id}
-                          className="border-stone-100 hover:bg-stone-50/70"
+                          className="group/guest border-stone-100 hover:bg-stone-50/70"
                           data-state={
                             selectedGuests.includes(guest._id)
                               ? "selected"
@@ -1003,7 +1043,16 @@ export function GuestTable({ guests }: GuestTableProps) {
                           )}
                           {!hiddenColumns.includes("inviteViewed") && (
                           <TableCell>
-                            <InviteViewedBadge inviteViewed={guest.inviteViewed} />
+                            <InviteViewedBadge count={guest.inviteViewCount} />
+                          </TableCell>
+                          )}
+                          {!hiddenColumns.includes("lastViewedAt") && (
+                          <TableCell className="whitespace-nowrap text-stone-700">
+                            {guest.lastViewedAt != null ? (
+                              <time dateTime={new Date(guest.lastViewedAt).toISOString()} title="Melbourne time">
+                                {formatLastViewed(guest.lastViewedAt)}
+                              </time>
+                            ) : <span className="text-stone-400">—</span>}
                           </TableCell>
                           )}
                           {!hiddenColumns.includes("inviteSent") && (
@@ -1068,7 +1117,7 @@ export function GuestTable({ guests }: GuestTableProps) {
                             </div>
                           </TableCell>
                           )}
-                          <TableCell>
+                          <TableCell className="sticky right-0 z-10 bg-white shadow-[-1px_0_0_0_#e7e5e4] transition-colors group-hover/guest:bg-stone-50 group-data-[state=selected]/guest:bg-muted">
                             {mounted ? (
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>

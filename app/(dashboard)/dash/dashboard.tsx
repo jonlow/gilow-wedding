@@ -17,6 +17,7 @@ import { logout, type AuthUser } from "./auth-actions";
 import { api } from "@/convex/_generated/api";
 import { AuthProvider } from "./hooks/useAuthToken";
 import { DashboardStats, GuestTable } from "./components";
+import { DrinksEntry } from "./components/DrinksEntry";
 import {
   ActivityLogList,
   ActivityLogSidebar,
@@ -50,6 +51,8 @@ function DashboardContent({ preloadedGuests, token }: DashboardContentProps) {
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [mobileActivityLogOpen, setMobileActivityLogOpen] = useState(false);
+  const [view, setView] = useState<"guests" | "drinks">("guests");
+  const [hasUnsavedDrinks, setHasUnsavedDrinks] = useState(false);
   const [cachedGuests, setCachedGuests] = useState(guests);
   const hasStartedSessionRecovery = useRef(false);
   const isSessionExpired = session?.valid === false;
@@ -76,6 +79,7 @@ function DashboardContent({ preloadedGuests, token }: DashboardContentProps) {
   }, [isSessionExpired, router]);
 
   const handleLogout = async () => {
+    if (hasUnsavedDrinks) return;
     setCachedGuests(guests);
     setIsLoggingOut(true);
     await logout();
@@ -119,13 +123,23 @@ function DashboardContent({ preloadedGuests, token }: DashboardContentProps) {
             variant="outline"
             className="border-stone-300/80 bg-white/70 shadow-sm backdrop-blur-sm"
             onClick={handleLogout}
-            disabled={isLoggingOut}
+            disabled={isLoggingOut || hasUnsavedDrinks}
+            title={hasUnsavedDrinks ? "Finish saving or retry failed drinks entries before signing out" : undefined}
           >
             {isLoggingOut ? "Signing out..." : "Sign Out"}
           </Button>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.45fr)_19rem] lg:items-start xl:grid-cols-[minmax(0,1.6fr)_20rem] xl:gap-10">
+        <nav aria-label="Dashboard views" className="mb-6 flex gap-2">
+          <Button variant={view === "guests" ? "default" : "outline"} aria-pressed={view === "guests"} onClick={() => setView("guests")}>Guests</Button>
+          <Button variant={view === "drinks" ? "default" : "outline"} aria-pressed={view === "drinks"} onClick={() => setView("drinks")}>Drinks</Button>
+        </nav>
+
+        <div hidden={view !== "drinks"}>
+          <DrinksEntry guests={isLoggingOut ? cachedGuests : guests} onUnsavedChange={setHasUnsavedDrinks} />
+        </div>
+
+        <div className={view === "guests" ? "grid gap-8 lg:grid-cols-[minmax(0,1.45fr)_19rem] lg:items-start xl:grid-cols-[minmax(0,1.6fr)_20rem] xl:gap-10" : "hidden"}>
           <div className="grid gap-6">
             <DashboardStats
               guests={isLoggingOut ? cachedGuests : guests}
@@ -142,7 +156,7 @@ function DashboardContent({ preloadedGuests, token }: DashboardContentProps) {
         </div>
       </div>
 
-      <div className="fixed inset-x-0 bottom-4 z-40 flex justify-center px-4 lg:hidden">
+      <div className={view === "guests" ? "fixed inset-x-0 bottom-4 z-40 flex justify-center px-4 lg:hidden" : "hidden"}>
         <Button
           type="button"
           size="sm"

@@ -27,6 +27,17 @@ Current actions supported from the table:
 - open guest audit log
 - switch to bulk CSV import mode
 
+The **Last Viewed** column shows the latest recorded invitation-page view in
+Melbourne time. Click its heading to sort newest first, then oldest first;
+guests without a qualifying view show `—` and stay last in both directions.
+The column can also be hidden through **View**.
+
+Views from Jon's home IP (`119.17.136.209`) are excluded from this timestamp,
+including historical logs and IPv4-mapped IPv6 equivalents. The audit logs are preserved. **Invite Viewed** shows the qualifying view count
+inside its pill and supports sorting most/fewest views first. Its status and
+filters also exclude these home-IP views. Views without a recorded IP
+still count because their source cannot be identified.
+
 The guest table also has row selection UI and an `Email Invite` button for selected rows, but that selected-row bulk email action is not currently wired to any backend behavior.
 
 ## Guest CRUD Convex functions
@@ -126,3 +137,35 @@ The sheet queries audit events newest-first and displays:
 - deletes every `guestAuditEvents` row
 
 This is intended for development/testing resets, not normal product flows.
+
+## Drinks entry
+
+The dashboard's **Drinks** view is for quick entry per adult: the main guest and
+one named plus one. It never creates entries from the Kids field. Confirmed
+guests are shown by default; All guests and name/partner search are available.
+
+- Drag the slider to a score from 0–10 directly in the row. Not set means unknown; 0 means no
+  alcohol. Clear returns the score to unknown. Scores 1–3 are light, 4–6 moderate, 7–8 heavy and 9–10 very heavy.
+- Select any combination of beer, white wine, sparkling, light red, red,
+  Aperol and whisky. Setting a score to 0 clears preferences.
+- Changes save automatically, with per-person saving/error feedback and Retry.
+  Rapid edits for the same person are saved in order. Enter in a score moves
+  to the next adult. Sign-out is disabled while saves are pending or failed.
+- **Copy to partner** replaces the partner's score and preferences with the
+  main guest's current entry, including any edits still being saved.
+- **Incomplete only** shows households missing a score or, for drinkers, drink
+  preferences. The household stays visible while it has keyboard focus.
+- Household counts and averages are derived from individual scores. Unknown
+  adults are shown separately; averages include only scores above zero.
+
+Private profiles are stored in `guestDrinks`, indexed by `guestId`, with `main`
+and `partner` profiles. Each profile has an optional `score` and a `preferences`
+array. They are available through authenticated `drinks.list` and
+`drinks.savePerson`, not through public invitation queries. A score measures
+expected drinking level, not a literal number of drinks. Agents estimating
+purchases should use confirmed households, account for unknown/incomplete
+entries, and establish event duration, serving options and existing stock.
+
+Partner writes must supply `expectedPartner`, matching the trimmed Plus One
+value. Changing that value clears the old profile and rejects stale writes.
+Deleting a guest removes their drinks record too.

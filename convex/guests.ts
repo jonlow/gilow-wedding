@@ -7,6 +7,7 @@ import type {
 import type { Id } from "./_generated/dataModel";
 import { v } from "convex/values";
 import { optionalAuth, requireAuth } from "./lib/auth";
+import { getLastViewedByGuest, getViewCountByGuest } from "../lib/guest-last-viewed";
 
 const GUEST_AUDIT_EVENT_COUNTER_NAME = "guestAuditEvents";
 
@@ -123,6 +124,8 @@ export const listGuests = query({
       attending: v.optional(v.boolean()),
       inviteSent: v.boolean(),
       inviteViewed: v.boolean(),
+      inviteViewCount: v.number(),
+      lastViewedAt: v.union(v.number(), v.null()),
       updateSent: v.boolean(),
       name: v.string(),
       lastName: v.optional(v.string()),
@@ -143,16 +146,15 @@ export const listGuests = query({
       ctx.db.query("guests").collect(),
       ctx.db.query("guestAuditEvents").collect(),
     ]);
-    const viewedGuestIds = new Set(
-      auditEvents
-        .filter((event) => event.eventLabel === "Invite page viewed")
-        .map((event) => event.guestId),
-    );
+    const viewCounts = getViewCountByGuest(auditEvents);
+    const lastViewedByGuest = getLastViewedByGuest(auditEvents);
 
     return guests.map((guest) => ({
       ...guest,
       inviteSent: guest.inviteSent ?? false,
-      inviteViewed: viewedGuestIds.has(guest._id),
+      inviteViewed: (viewCounts.get(guest._id) ?? 0) > 0,
+      inviteViewCount: viewCounts.get(guest._id) ?? 0,
+      lastViewedAt: lastViewedByGuest.get(guest._id) ?? null,
       updateSent: guest.updateSent ?? false,
     }));
   },
@@ -389,6 +391,13 @@ export const updateGuest = mutation({
       };
     }
 
+    // A replacement plus one must not inherit the previous person's drinks plan.
+    if (normalizeOptionalString(args.plusOne) !== normalizeOptionalString(guest.plusOne)) {
+      const drinks = await ctx.db.query("guestDrinks")
+        .withIndex("by_guestId", (q) => q.eq("guestId", args.guestId)).unique();
+      if (drinks?.partner) await ctx.db.patch(drinks._id, { partner: undefined });
+    }
+
     // Update the guest
     await ctx.db.patch(args.guestId, {
       name: args.name,
@@ -511,6 +520,9 @@ export const deleteGuest = mutation({
   handler: async (ctx, args) => {
     await requireAuth(ctx, args.token);
     await logGuestAuditEvent(ctx, args.guestId, "Guest deleted");
+    const drinks = await ctx.db.query("guestDrinks")
+      .withIndex("by_guestId", (q) => q.eq("guestId", args.guestId)).unique();
+    if (drinks) await ctx.db.delete(drinks._id);
     await ctx.db.delete(args.guestId);
     return null;
   },
