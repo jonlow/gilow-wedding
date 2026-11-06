@@ -1,4 +1,6 @@
-export type WeddingUpdateDraft = {
+import { formatGuestGreetingNames } from "@/lib/guest-display";
+
+type WeddingUpdateDraft = {
   subject: string;
   previewText: string;
   names: string;
@@ -10,16 +12,16 @@ export type WeddingUpdateDraft = {
   imageAlt: string;
 };
 
-export const defaultWeddingUpdateDraft: WeddingUpdateDraft = {
+const defaultWeddingUpdateDraft: WeddingUpdateDraft = {
   subject: "See you on 21 Nov! A few wedding details",
   previewText: "11am, Saturday 21 November, 5 Archer Place, Mill Park.",
   names: "friends",
   heading: "",
   body: "Our wedding ceremony starts at **11am** on **Saturday 21 November** at **5 Archer Place, Mill Park 3082**. Here's a map to help you find us.",
   bodyBelowImage:
-    "Please park near the Statesman Crescent end of Archer Place or in nearby streets, leaving room in the cul-de-sac for the ceremony and party.\n\nWear whatever makes you feel good. We'll be mostly outdoors. Looking forward to seeing you!",
+    "You can park near Archer Place on Statesman Crescent or in nearby streets, leaving room in the cul-de-sac for the ceremony and party.\n\nWear whatever makes you feel good. We'll be mostly outdoors. Looking forward to seeing you!",
   signOff: "With love,",
-  imageUrl: "", // Supplied by the local preview; host the image when wiring up sending.
+  imageUrl: "", // Resolved by buildWeddingUpdateEmail for preview and delivery.
   imageAlt:
     "Wedding location map showing Archer Place, Statesman Crescent, Todman Close and Mill Park Drive",
 };
@@ -54,7 +56,7 @@ function imageUrl(value: string) {
     : webUrl(trimmed);
 }
 
-export function weddingUpdateEmail(draft: WeddingUpdateDraft) {
+function weddingUpdateEmail(draft: WeddingUpdateDraft) {
   const image = imageUrl(draft.imageUrl);
   const paragraphStyle = "margin:0 0 20px;font-size:16px;line-height:1.6;";
   const paragraphs = (body: string) =>
@@ -63,7 +65,11 @@ export function weddingUpdateEmail(draft: WeddingUpdateDraft) {
       .filter((paragraph) => paragraph.trim())
       .map(
         (paragraph) =>
-          `<p class="mobile-text" style="${paragraphStyle}">${escapeHtml(paragraph).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\r?\n/g, "<br />")}</p>`,
+          `<p class="mobile-text" style="${paragraphStyle}">${escapeHtml(
+            paragraph,
+          )
+            .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+            .replace(/\r?\n/g, "<br />")}</p>`,
       )
       .join("\n");
   const text = [
@@ -118,4 +124,24 @@ export function weddingUpdateEmail(draft: WeddingUpdateDraft) {
 </html>`;
 
   return { html, text, previewText: draft.previewText };
+}
+
+/** The only entry point for both the preview and the outgoing update. */
+export function buildWeddingUpdateEmail({
+  origin,
+  guest = { name: "friends" },
+}: {
+  origin: string;
+  guest?: Parameters<typeof formatGuestGreetingNames>[0];
+}) {
+  const draft = {
+    ...defaultWeddingUpdateDraft,
+    names: formatGuestGreetingNames(guest),
+    imageUrl: new URL("/email/wedding-map.png", origin).href,
+  };
+  return {
+    from: '"Bel & Jon" <howdy@belandjon.com>',
+    subject: draft.subject,
+    ...weddingUpdateEmail(draft),
+  };
 }
