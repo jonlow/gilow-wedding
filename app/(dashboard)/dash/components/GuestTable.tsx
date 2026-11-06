@@ -3,6 +3,7 @@
 import { forwardRef, useState, useEffect, useRef } from "react";
 import {
   MoreHorizontal,
+  SlidersHorizontal,
   Mail,
   Copy,
   Check,
@@ -30,6 +31,7 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuCheckboxItem,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
@@ -57,6 +59,21 @@ import { DeleteGuestDialog } from "./DeleteGuestDialog";
 import { GuestAuditSheet } from "./GuestAuditSheet";
 import { ResendInviteDialog } from "./ResendInviteDialog";
 
+const guestColumns = [
+  { id: "name", label: "Name" },
+  { id: "email", label: "Email" },
+  { id: "rsvp", label: "RSVP" },
+  { id: "inviteViewed", label: "Invite Viewed" },
+  { id: "inviteSent", label: "Invite Sent" },
+  { id: "updateViewed", label: "Update Viewed" },
+  { id: "updateSent", label: "Update Sent" },
+  { id: "plusOne", label: "Plus One" },
+  { id: "kids", label: "Kids" },
+  { id: "slug", label: "Slug" },
+] as const;
+type GuestColumnId = (typeof guestColumns)[number]["id"];
+const columnStorageKey = "wedding-guest-table-hidden-columns";
+
 const AddGuestSheet = dynamic(() => import("../AddGuestSheet"), {
   ssr: false,
   loading: () => (
@@ -73,6 +90,8 @@ type Guest = {
   attending?: boolean;
   inviteSent: boolean;
   inviteViewed: boolean;
+  updateSent: boolean;
+  updateViewed: boolean;
   name: string;
   lastName?: string;
   email?: string;
@@ -237,6 +256,8 @@ export function GuestTable({ guests }: GuestTableProps) {
   const [mounted, setMounted] = useState(false);
   const [rsvpFilter, setRsvpFilter] = useState<RsvpFilter>("all");
   const [inviteFilter, setInviteFilter] = useState<InviteFilter>("all");
+  const [hiddenColumns, setHiddenColumns] = useState<GuestColumnId[]>([]);
+  const visibleColumns = guestColumns.filter(({ id }) => !hiddenColumns.includes(id));
   const [searchQuery, setSearchQuery] = useState("");
   const [copiedGuestId, setCopiedGuestId] = useState<Id<"guests"> | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -261,8 +282,25 @@ export function GuestTable({ guests }: GuestTableProps) {
   const deleteGuest = useMutation(api.guests.deleteGuest);
 
   useEffect(() => {
+    try {
+      const saved: unknown = JSON.parse(localStorage.getItem(columnStorageKey) ?? "[]");
+      if (Array.isArray(saved)) {
+        setHiddenColumns(guestColumns.filter(({ id }) => saved.includes(id)).map(({ id }) => id));
+      }
+    } catch {
+      // Use all columns when browser storage is unavailable or invalid.
+    }
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    try {
+      localStorage.setItem(columnStorageKey, JSON.stringify(hiddenColumns));
+    } catch {
+      // Column selection still works when browser storage is unavailable.
+    }
+  }, [hiddenColumns, mounted]);
 
   useEffect(() => {
     return () => {
@@ -823,6 +861,7 @@ export function GuestTable({ guests }: GuestTableProps) {
                         Invite state, response tracking, and guest details.
                       </p>
                     </div>
+                    <div className="flex items-center gap-2">
                     {selectedGuestsWithRecipients.length > 0 ? (
                       <Button
                         size="sm"
@@ -832,6 +871,37 @@ export function GuestTable({ guests }: GuestTableProps) {
                         Email Invite
                       </Button>
                     ) : null}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm" disabled={!mounted}>
+                            <SlidersHorizontal className="mr-2 h-4 w-4" />
+                            View
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          {guestColumns.map(({ id, label }) => (
+                            <DropdownMenuCheckboxItem
+                              key={id}
+                              checked={!hiddenColumns.includes(id)}
+                              onSelect={(event) => event.preventDefault()}
+                              onCheckedChange={(checked) =>
+                                setHiddenColumns((current) => checked
+                                  ? current.filter((column) => column !== id)
+                                  : [...new Set([...current, id])])
+                              }
+                            >
+                              {label}
+                            </DropdownMenuCheckboxItem>
+                          ))}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onSelect={() => setHiddenColumns([])}>
+                            Show all columns
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
                 </div>
 
@@ -847,30 +917,11 @@ export function GuestTable({ guests }: GuestTableProps) {
                           aria-label="Select all"
                         />
                       </TableHead>
-                      <TableHead className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
-                        Name
-                      </TableHead>
-                      <TableHead className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
-                        Email
-                      </TableHead>
-                      <TableHead className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
-                        RSVP
-                      </TableHead>
-                      <TableHead className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
-                        Invite Viewed
-                      </TableHead>
-                      <TableHead className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
-                        Invite Sent
-                      </TableHead>
-                      <TableHead className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
-                        Plus One
-                      </TableHead>
-                      <TableHead className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
-                        Kids
-                      </TableHead>
-                      <TableHead className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
-                        Slug
-                      </TableHead>
+                      {visibleColumns.map(({ id, label }) => (
+                        <TableHead key={id} className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
+                          {label}
+                        </TableHead>
+                      ))}
                       <TableHead className="w-12.5 text-xs font-semibold uppercase tracking-[0.16em] text-stone-500"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -878,7 +929,7 @@ export function GuestTable({ guests }: GuestTableProps) {
                     {filteredGuests.length === 0 ? (
                       <TableRow className="hover:bg-transparent">
                         <TableCell
-                          colSpan={10}
+                          colSpan={visibleColumns.length + 2}
                           className="py-16 text-center text-stone-500"
                         >
                           No guests match the current search and filters.
@@ -905,6 +956,7 @@ export function GuestTable({ guests }: GuestTableProps) {
                               aria-label={`Select ${guest.name}`}
                             />
                           </TableCell>
+                          {!hiddenColumns.includes("name") && (
                           <TableCell className="font-medium text-stone-900">
                             <span className="inline-flex items-center gap-2">
                               <span>{getDashboardGuestName(guest)}</span>
@@ -913,30 +965,54 @@ export function GuestTable({ guests }: GuestTableProps) {
                               ) : null}
                             </span>
                           </TableCell>
+                          )}
+                          {!hiddenColumns.includes("email") && (
                           <TableCell className="text-stone-700">
                             {guest.email?.trim() || (
                               <span className="text-stone-400">—</span>
                             )}
                           </TableCell>
+                          )}
+                          {!hiddenColumns.includes("rsvp") && (
                           <TableCell>
                             <RsvpBadge attending={guest.attending} />
                           </TableCell>
+                          )}
+                          {!hiddenColumns.includes("inviteViewed") && (
                           <TableCell>
                             <InviteViewedBadge inviteViewed={guest.inviteViewed} />
                           </TableCell>
+                          )}
+                          {!hiddenColumns.includes("inviteSent") && (
                           <TableCell>
                             <InviteBadge inviteSent={guest.inviteSent} />
                           </TableCell>
+                          )}
+                          {!hiddenColumns.includes("updateViewed") && (
+                          <TableCell>
+                            <InviteViewedBadge inviteViewed={guest.updateViewed} />
+                          </TableCell>
+                          )}
+                          {!hiddenColumns.includes("updateSent") && (
+                          <TableCell>
+                            <InviteBadge inviteSent={guest.updateSent} />
+                          </TableCell>
+                          )}
+                          {!hiddenColumns.includes("plusOne") && (
                           <TableCell className="text-stone-700">
                             {guest.plusOne?.trim() || (
                               <span className="text-stone-400">—</span>
                             )}
                           </TableCell>
+                          )}
+                          {!hiddenColumns.includes("kids") && (
                           <TableCell className="text-stone-700">
                             {guest.kids?.trim() || (
                               <span className="text-stone-400">—</span>
                             )}
                           </TableCell>
+                          )}
+                          {!hiddenColumns.includes("slug") && (
                           <TableCell className="font-mono text-xs text-stone-600">
                             <div className="flex items-center gap-1">
                               <span>{guest.slug}</span>
@@ -973,6 +1049,7 @@ export function GuestTable({ guests }: GuestTableProps) {
                               </Button>
                             </div>
                           </TableCell>
+                          )}
                           <TableCell>
                             {mounted ? (
                               <DropdownMenu>

@@ -123,6 +123,8 @@ export const listGuests = query({
       attending: v.optional(v.boolean()),
       inviteSent: v.boolean(),
       inviteViewed: v.boolean(),
+      updateSent: v.boolean(),
+      updateViewed: v.boolean(),
       name: v.string(),
       lastName: v.optional(v.string()),
       email: v.optional(v.string()),
@@ -152,6 +154,8 @@ export const listGuests = query({
       ...guest,
       inviteSent: guest.inviteSent ?? false,
       inviteViewed: viewedGuestIds.has(guest._id),
+      updateSent: guest.updateSent ?? false,
+      updateViewed: guest.updateViewed ?? false,
     }));
   },
 });
