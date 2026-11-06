@@ -19,7 +19,7 @@ export const defaultWeddingUpdateDraft: WeddingUpdateDraft = {
   heading: "",
   body: "Just a quick reminder that our wedding is on **Saturday 21 November**. The ceremony starts at **11am**.\n\nThe address is **5 Archer Place, Mill Park 3082**. Here’s a map to help you find us.",
   bodyBelowImage:
-    "Please park along Archer Place towards Statesman Crescent, or in nearby streets, leaving the cul-de-sac near the house free for the ceremony and party.\n\nLooking forward to seeing you!",
+    "Please park near the Statesman Crescent end of Archer Place or in nearby streets, leaving room in the cul-de-sac for the ceremony and party.\n\nLooking forward to seeing you!",
   signOff: "With love,",
   buttonLabel: "View wedding details",
   buttonLink: "",

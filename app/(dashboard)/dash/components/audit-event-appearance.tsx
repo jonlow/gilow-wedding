@@ -14,6 +14,7 @@ export function getAuditEventAppearance(
   const normalizedLabel = eventLabel.trim().toLowerCase();
 
   switch (normalizedLabel) {
+    case "update sent":
     case "invite sent":
       return {
         dotClassName: "bg-emerald-500",

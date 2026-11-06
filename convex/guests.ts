@@ -124,7 +124,6 @@ export const listGuests = query({
       inviteSent: v.boolean(),
       inviteViewed: v.boolean(),
       updateSent: v.boolean(),
-      updateViewed: v.boolean(),
       name: v.string(),
       lastName: v.optional(v.string()),
       email: v.optional(v.string()),
@@ -155,7 +154,6 @@ export const listGuests = query({
       inviteSent: guest.inviteSent ?? false,
       inviteViewed: viewedGuestIds.has(guest._id),
       updateSent: guest.updateSent ?? false,
-      updateViewed: guest.updateViewed ?? false,
     }));
   },
 });
@@ -554,6 +552,46 @@ export const markInviteSent = mutation({
     return {
       ok: true,
       inviteSent: true,
+    };
+  },
+});
+
+export const markUpdateSent = mutation({
+  args: {
+    token: v.string(),
+    guestId: v.id("guests"),
+    ipAddress: v.optional(v.string()),
+    city: v.optional(v.string()),
+    country: v.optional(v.string()),
+  },
+  returns: v.object({
+    ok: v.boolean(),
+    updateSent: v.boolean(),
+  }),
+  handler: async (ctx, args) => {
+    await requireAuth(ctx, args.token);
+
+    const guest = await ctx.db.get(args.guestId);
+    if (!guest) {
+      throw new Error("Guest not found");
+    }
+
+    await ctx.db.patch(args.guestId, { updateSent: true });
+    const ipAddress = args.ipAddress?.trim();
+    const city = args.city?.trim();
+    const country = args.country?.trim();
+    await logGuestAuditEvent(
+      ctx,
+      args.guestId,
+      "Update sent",
+      ipAddress ? ipAddress : undefined,
+      city ? city : undefined,
+      country ? country : undefined,
+    );
+
+    return {
+      ok: true,
+      updateSent: true,
     };
   },
 });

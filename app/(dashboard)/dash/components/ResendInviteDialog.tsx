@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 interface ResendInviteDialogProps {
+  emailKind?: "invite" | "update";
   open: boolean;
   onOpenChange: (open: boolean) => void;
   guestName: string | undefined;
@@ -18,6 +19,7 @@ interface ResendInviteDialogProps {
 }
 
 export function ResendInviteDialog({
+  emailKind = "invite",
   open,
   onOpenChange,
   guestName,
@@ -28,10 +30,10 @@ export function ResendInviteDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Resend invite?</AlertDialogTitle>
+          <AlertDialogTitle>Resend {emailKind}?</AlertDialogTitle>
           <AlertDialogDescription>
-            <strong className="font-semibold">{guestName}</strong> is already
-            marked as invited. Do you want to send the invite again?
+            <strong className="font-semibold">{guestName}</strong> has already
+            been sent an {emailKind}. Do you want to send it again?
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -39,7 +41,7 @@ export function ResendInviteDialog({
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction onClick={onConfirm} disabled={isSending}>
-            {isSending ? "Sending..." : "Resend invite"}
+            {isSending ? "Sending..." : `Resend ${emailKind}`}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

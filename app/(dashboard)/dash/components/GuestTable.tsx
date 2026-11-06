@@ -65,7 +65,6 @@ const guestColumns = [
   { id: "rsvp", label: "RSVP" },
   { id: "inviteViewed", label: "Invite Viewed" },
   { id: "inviteSent", label: "Invite Sent" },
-  { id: "updateViewed", label: "Update Viewed" },
   { id: "updateSent", label: "Update Sent" },
   { id: "plusOne", label: "Plus One" },
   { id: "kids", label: "Kids" },
@@ -91,7 +90,6 @@ type Guest = {
   inviteSent: boolean;
   inviteViewed: boolean;
   updateSent: boolean;
-  updateViewed: boolean;
   name: string;
   lastName?: string;
   email?: string;
@@ -268,6 +266,8 @@ export function GuestTable({ guests }: GuestTableProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [editSheetOpen, setEditSheetOpen] = useState(false);
   const [guestToEdit, setGuestToEdit] = useState<Guest | null>(null);
+  const [sendingUpdateGuestId, setSendingUpdateGuestId] = useState<Id<"guests"> | null>(null);
+  const [updateToResend, setUpdateToResend] = useState<Guest | null>(null);
   const [resendDialogOpen, setResendDialogOpen] = useState(false);
   const [guestToResend, setGuestToResend] = useState<Guest | null>(null);
   const [auditSheetOpen, setAuditSheetOpen] = useState(false);
@@ -571,6 +571,29 @@ export function GuestTable({ guests }: GuestTableProps) {
       );
     } finally {
       setSendingInviteGuestId(null);
+    }
+  };
+
+  const sendUpdate = async (guest: Guest) => {
+    if (sendingUpdateGuestId || !canSendInvite(guest)) return;
+    const toastId = `send-update-${guest._id}`;
+    setSendingUpdateGuestId(guest._id);
+    toast.loading(`Sending update to ${guest.name}...`, { id: toastId });
+    try {
+      const response = await fetch("/api/send-update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ guestId: guest._id }),
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.error || "Failed to send update");
+      }
+      toast.success(`Update sent to ${guest.name}.`, { id: toastId });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to send update", { id: toastId });
+    } finally {
+      setSendingUpdateGuestId(null);
     }
   };
 
@@ -988,11 +1011,6 @@ export function GuestTable({ guests }: GuestTableProps) {
                             <InviteBadge inviteSent={guest.inviteSent} />
                           </TableCell>
                           )}
-                          {!hiddenColumns.includes("updateViewed") && (
-                          <TableCell>
-                            <InviteViewedBadge inviteViewed={guest.updateViewed} />
-                          </TableCell>
-                          )}
                           {!hiddenColumns.includes("updateSent") && (
                           <TableCell>
                             <InviteBadge inviteSent={guest.updateSent} />
@@ -1067,6 +1085,14 @@ export function GuestTable({ guests }: GuestTableProps) {
 
                                   {canSendInvite(guest) ? (
                                     <DropdownMenuItem
+                                      disabled={Boolean(sendingUpdateGuestId)}
+                                      onClick={() => guest.updateSent ? setUpdateToResend(guest) : void sendUpdate(guest)}
+                                    >
+                                      {sendingUpdateGuestId === guest._id ? "Sending update..." : "Send Update"}
+                                    </DropdownMenuItem>
+                                  ) : null}
+                                  {canSendInvite(guest) ? (
+                                    <DropdownMenuItem
                                       onClick={() => handleSendInvite(guest)}
                                       disabled={sendingInviteGuestId === guest._id}
                                     >
@@ -1124,6 +1150,18 @@ export function GuestTable({ guests }: GuestTableProps) {
         </CardContent>
       </Card>
 
+      <ResendInviteDialog
+        emailKind="update"
+        open={Boolean(updateToResend)}
+        onOpenChange={(open) => { if (!open) setUpdateToResend(null); }}
+        guestName={updateToResend?.name}
+        isSending={Boolean(sendingUpdateGuestId)}
+        onConfirm={() => {
+          if (!updateToResend) return;
+          void sendUpdate(updateToResend);
+          setUpdateToResend(null);
+        }}
+      />
       <ResendInviteDialog
         open={resendDialogOpen && mounted}
         onOpenChange={handleResendDialogOpenChange}
