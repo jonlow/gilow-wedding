@@ -29,7 +29,6 @@ export async function POST(request: Request) {
       ...defaultWeddingUpdateDraft,
       names: formatGuestGreetingNames(guest),
       imageUrl: `${origin}/email/wedding-map.png`,
-      buttonLink: `${origin}/${guest.slug.replace(/^\/+/, "")}`,
     });
     const result = await sendEmail({
       from: '"Bel & Jon" <howdy@belandjon.com>',
