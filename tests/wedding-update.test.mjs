@@ -10,7 +10,7 @@ const root = fileURLToPath(new URL("../", import.meta.url));
 
 // Exercise the real route handlers without Next's server or external services.
 function setup({
-  guest = { name: "friends" },
+  guest = { name: "friends", slug: "friends" },
   environment = "development",
 } = {}) {
   const sent = [];
@@ -77,9 +77,9 @@ function setup({
 }
 
 for (const guest of [
-  { name: "friends" },
-  { name: "Alex", plusOne: "Sam", kids: "Charlie|Jamie" },
-  { name: '<script>alert("test")</script>', plusOne: "A & B" },
+  { name: "friends", slug: "friends" },
+  { name: "Alex", slug: "alex-sam", plusOne: "Sam", kids: "Charlie|Jamie" },
+  { name: '<script>alert("test")</script>', plusOne: "A & B", slug: "special & guest" },
 ]) {
   test(`preview matches the outgoing email for ${guest.name}`, async () => {
     const { load, sent } = setup({ guest });
@@ -110,7 +110,13 @@ for (const guest of [
         'src="http://localhost:3000/email/wedding-map.png"',
       ),
     );
-    assert.doesNotMatch(sent[0].html, /<a\s|<script>|View wedding details/);
+    assert.doesNotMatch(sent[0].html, /<script>|View wedding details/);
+    assert.match(sent[0].html, /href="https:\/\/maps.app.goo.gl\/rstVJGrRyifytLN29" style="[^"]*text-decoration:underline;">5 Archer Place, Mill Park 3082<\/a>/);
+    const inviteUrl = `http://localhost:3000/${encodeURIComponent(guest.slug)}`;
+    assert.ok(sent[0].html.includes(`href="${inviteUrl}"`));
+    assert.ok(sent[0].text.includes(`View your invite: ${inviteUrl}`));
+    assert.ok(sent[0].text.includes("https://maps.app.goo.gl/rstVJGrRyifytLN29"));
+    assert.ok(sent[0].html.indexOf("View your invite") > sent[0].html.indexOf("bel-jon-sig.png"));
     assert.match(sent[0].html, /<strong>11am<\/strong>/);
     assert.doesNotMatch(sent[0].text, /\*\*|<strong>/);
   });

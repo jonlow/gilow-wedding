@@ -13,6 +13,7 @@ export async function GET(request: Request) {
     guest: name
       ? {
           name,
+          slug: url.searchParams.get("slug") ?? "preview-invite",
           plusOne: url.searchParams.get("plusOne") ?? undefined,
           kids: url.searchParams.get("kids") ?? undefined,
         }

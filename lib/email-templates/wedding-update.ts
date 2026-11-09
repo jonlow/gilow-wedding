@@ -10,21 +10,26 @@ type WeddingUpdateDraft = {
   signOff: string;
   imageUrl: string;
   imageAlt: string;
+  inviteUrl: string;
 };
 
 const defaultWeddingUpdateDraft: WeddingUpdateDraft = {
   subject: "See you on 21 Nov! A few wedding details",
   previewText: "11am, Saturday 21 November, 5 Archer Place, Mill Park.",
   names: "friends",
-  heading: "",
-  body: "Our wedding ceremony starts at **11am** on **Saturday 21 November** at **5 Archer Place, Mill Park 3082**. Here's a map to help you find us.",
+  heading: "Not long now! Here are a few more details to help you on the day.",
+  body: "Our wedding ceremony starts at **11am** on **Saturday 21 November** at **5 Archer Place, Mill Park 3082**.",
   bodyBelowImage:
     "You can park near Archer Place on Statesman Crescent or in nearby streets, leaving room in the cul-de-sac for the ceremony and party.\n\nWear whatever makes you feel good. We'll be mostly outdoors. Looking forward to seeing you!",
   signOff: "With love,",
   imageUrl: "", // Resolved by buildWeddingUpdateEmail for preview and delivery.
   imageAlt:
     "Wedding location map showing Archer Place, Statesman Crescent, Todman Close and Mill Park Drive",
+  inviteUrl: "",
 };
+
+const address = "5 Archer Place, Mill Park 3082";
+const mapUrl = "https://maps.app.goo.gl/rstVJGrRyifytLN29";
 
 function escapeHtml(value: string) {
   return value
@@ -69,6 +74,7 @@ function weddingUpdateEmail(draft: WeddingUpdateDraft) {
             paragraph,
           )
             .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+            .replace(address, `<a href="${mapUrl}" style="color:#2d68b2;text-decoration:underline;">${address}</a>`)
             .replace(/\r?\n/g, "<br />")}</p>`,
       )
       .join("\n");
@@ -76,10 +82,13 @@ function weddingUpdateEmail(draft: WeddingUpdateDraft) {
     `Hi ${draft.names}!`,
     draft.heading,
     draft.body.replace(/\*\*(.+?)\*\*/g, "$1"),
+    "Here's a map to help you find us.",
+    `Map: ${mapUrl}`,
     ...(image && draft.imageAlt.trim() ? [draft.imageAlt] : []),
     draft.bodyBelowImage.replace(/\*\*(.+?)\*\*/g, "$1"),
     draft.signOff,
     "Bel & Jon",
+    `View your invite: ${draft.inviteUrl}`,
   ]
     .filter(Boolean)
     .join("\n\n");
@@ -108,6 +117,9 @@ function weddingUpdateEmail(draft: WeddingUpdateDraft) {
             ${draft.heading.trim() ? `<p class="mobile-text" style="${paragraphStyle}">${escapeHtml(draft.heading)}</p>` : ""}
             ${paragraphs(draft.body)}
           </td></tr>
+          <tr><td class="mobile-padding" style="padding:0 32px 8px;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;text-align:center;">
+            ${paragraphs("Here's a map to help you find us.")}
+          </td></tr>
           ${image ? `<tr><td class="mobile-padding" align="center" style="padding:0 32px 28px;"><img src="${escapeHtml(image)}" alt="${escapeHtml(draft.imageAlt)}" width="636" style="display:block;width:100%;max-width:636px;height:auto;border:0;outline:none;text-decoration:none;" /></td></tr>` : ""}
           <tr><td class="mobile-padding" style="padding:0 32px 8px;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;text-align:center;">${paragraphs(draft.bodyBelowImage)}</td></tr>
           <tr><td class="mobile-padding" style="padding:0 32px 32px;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;text-align:center;">
@@ -116,6 +128,22 @@ function weddingUpdateEmail(draft: WeddingUpdateDraft) {
               <img src="https://www.belandjon.com/bel-jon-sig.png" alt="Bel &amp; Jon signature" width="200" height="47" style="display:block;width:200px;height:47px;max-width:100%;border:0;outline:none;text-decoration:none;margin:0 auto;" />
             </td></tr></table>
           </td></tr>
+          <tr>
+            <td align="center" style="padding:0 32px 30px;">
+              <!--[if mso]>
+                <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escapeHtml(draft.inviteUrl)}" style="height:50px;v-text-anchor:middle;width:170px;" arcsize="8%" stroke="f" fillcolor="#f8af63">
+                  <w:anchorlock/>
+                  <center style="color:#000000;font-family:Segoe UI,Arial,sans-serif;font-size:16px;font-weight:bold;">
+                    View your invite
+                  </center>
+                </v:roundrect>
+              <![endif]-->
+              <!--[if !mso]><!-- -->
+              <a href="${escapeHtml(draft.inviteUrl)}"
+                style="background-color:#f8af63;color:#000000;display:inline-block;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:16px;font-weight:bold;line-height:50px;text-align:center;text-decoration:none;width:170px;max-width:90%;-webkit-text-size-adjust:none;mso-hide:all;border-radius:4px;">View your invite</a>
+              <!--<![endif]-->
+            </td>
+          </tr>
         </table>
         <!--[if mso]></td></tr></table><![endif]-->
       </td></tr>
@@ -129,15 +157,16 @@ function weddingUpdateEmail(draft: WeddingUpdateDraft) {
 /** The only entry point for both the preview and the outgoing update. */
 export function buildWeddingUpdateEmail({
   origin,
-  guest = { name: "friends" },
+  guest = { name: "friends", slug: "preview-invite" },
 }: {
   origin: string;
-  guest?: Parameters<typeof formatGuestGreetingNames>[0];
+  guest?: Parameters<typeof formatGuestGreetingNames>[0] & { slug: string };
 }) {
   const draft = {
     ...defaultWeddingUpdateDraft,
     names: formatGuestGreetingNames(guest),
     imageUrl: new URL("/email/wedding-map.png", origin).href,
+    inviteUrl: new URL(`/${encodeURIComponent(guest.slug)}`, origin).href,
   };
   return {
     from: '"Bel & Jon" <howdy@belandjon.com>',
