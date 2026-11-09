@@ -126,8 +126,8 @@ export function WeddingPageContent({
 
         <p>5 Archer Place Mill Park 3082 VIC</p>
         <p>
-          If you need help with travel arrangements, please contact us and we’ll
-          help you out.
+          You can park near Archer Place on Statesman Crescent or in nearby
+          streets, leaving room in the cul-de-sac for the ceremony and party.
         </p>
 
         <Image
@@ -141,7 +141,8 @@ export function WeddingPageContent({
         />
       </div>
 
-      <div className="prose-narrow bg-green relative mx-auto max-w-300 px-8 pt-18 pb-15 text-center text-black md:px-12 md:pb-17">
+      {/* Temporarily hidden now that the RSVP deadline has passed. */}
+      <div hidden className="prose-narrow bg-green relative mx-auto max-w-300 px-8 pt-18 pb-15 text-center text-black md:px-12 md:pb-17">
         <p>Please let us know you can make it by</p>
         <p className="heading-3">{formatRsvpDeadlineForInvite(rsvpDeadline)}</p>
       </div>
